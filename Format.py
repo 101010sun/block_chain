@@ -1,5 +1,5 @@
 import time
-#格式
+#格式函式
 class Transaction: #交易格式
     #建構式
     def __init__(self,sender,receiver,amounts,fee,message):
