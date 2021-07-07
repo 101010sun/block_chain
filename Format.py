@@ -8,6 +8,7 @@ class Transaction: #交易格式
         self.amounts = amounts #金額大小
         self.fee = fee #手續費
         self.message = message #訊息
+        self.id = ''
 
     """ # 方法(Method)
     def test(self):
@@ -25,14 +26,12 @@ class Block: #區塊格式
         self.timestamp = int(time.time()) #區塊產生時間戳
         self.transactions = [] #交易紀錄
         self.miner = miner #礦工
-        self.miner_rewards = miner_rewards #礦工獎勵
 
 class BlockChain: #區塊鏈架構
     def __init__(self):
         self.adjust_difficultly_blocks = 10 #多少個區塊調節一次難度
         self.difficultly = 1 #目前難度
         self.blocks_time = 30 #出塊時間
-        self.mining_rewards = 10 #挖礦獎勵
         self.block_limitation = 32 #區塊容量
         self.chain = [] #目前區塊鏈中儲存的所有區塊
         self.pending_transactions = [] #等待中的交易
