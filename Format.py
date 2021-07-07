@@ -8,7 +8,6 @@ class Transaction: #交易格式
         self.amounts = amounts #金額大小
         self.fee = fee #手續費
         self.message = message #訊息
-        self.id = ''
 
     """ # 方法(Method)
     def test(self):
