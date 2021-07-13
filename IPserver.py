@@ -2,6 +2,7 @@ import sys
 import socket
 import threading
 import time
+import pickle
 
 class IPServer:
     def __init__(self):
@@ -29,17 +30,32 @@ class IPServer:
                 client_handler = threading.Thread(target=self.receive_socket_message, args=(conn, address))
                 client_handler.start()
 
+                client_handler.join()
+                print('receive_over_join')
+
+
     # messages receiving from server handle
     def receive_socket_message(self, connection ,address):
         with connection:
             print(f'Connected by: {address}')
-            while True:
-                message = connection.recv(1024)
-                print(f"[*] Received: {message}")
-                time.sleep(1)
-                response_bytes = str('node IP and Port number').encode('utf8')
-                connection.sendall(response_bytes)
-                break
+
+            message = connection.recv(1024)
+            try:
+                parsed_message = pickle.loads(message)
+            except Exception:
+                print(f"{message} cannot be parsed")
+
+            print(f"[*] Received: {parsed_message}")
+            if message:
+                # check the identity msg. is user and want to get balance information
+                # send one appropriate node's IP and Port number
+                if parsed_message["identity"] == "user" and parsed_message["request"] == "get_balance":
+                    response = {"IP": "127.0.0.1", "Port_number": "1112"}
+                    connection.send(pickle.dumps(response))
+                    
+                # check the identity msg. is node
+                elif parsed_message["identity"] == "node":
+                    print('node')
 
 
 
