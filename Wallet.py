@@ -1,5 +1,5 @@
 import rsa
-def generate_address(self):
+def generate_address():
     public, private = rsa.newkeys(512) #rsa key
     #public key
     public_key = public.save_pkcs1()
@@ -14,5 +14,4 @@ def generate_address(self):
     address = address.replace("b'-----BEGIN RSA PUBLIC KEY-----", '')
     address = address.replace("-----END RSA PUBLIC KEY-----'", '')
     address = address.replace(' ', '')
-    print('Address:', address)
-    return private_key, address
+    return address, private_key
