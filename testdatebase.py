@@ -10,7 +10,7 @@ conn = MongoClient()
 #database
 db = conn.localcurrency
 #collection
-col_Information_user       = db.Information_user
+col_Information_user = db.Information_user
 #connect error or not
 col_Information_user.stats
 
