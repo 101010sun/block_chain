@@ -1,4 +1,5 @@
 from Format import Block
+from Format import BlockChain
 
 def create_genesis_block(self):
     print("Create genesis block...")
