@@ -16,18 +16,18 @@ col_Information_user.stats
 
 def insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,walletaddress,public_key,e_private_key,e_password):
     data = {
-      'Name':name,
-      'Sex': sex,
-      'Birth': birth,
-      'Email': email,
-      'Phone': phone,
-      'Address': address,
-      'Id': idd,
-      'Photo_id': photo_id,
-      'Walletaddress': walletaddress,
-      'Public_key': public_key,
-      'Private_key': e_private_key,
-      'E_password': e_password
+      'name':name,
+      'sex': sex,
+      'birth': birth,
+      'email': email,
+      'phone': phone,
+      'address': address,
+      'id': idd,
+      'photo_id': photo_id,
+      'walletaddress': walletaddress,
+      'public_key': public_key,
+      'private_key': e_private_key,
+      'e_password': e_password
     }
     col_Information_user.insert_one(data)
 
