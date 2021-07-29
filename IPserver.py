@@ -3,6 +3,8 @@ import socket
 import threading
 import time
 import pickle
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 class IPServer:
     def __init__(self):
@@ -12,6 +14,12 @@ class IPServer:
         self.target_host = ''
         self.target_port = int(0)
         self.start_socket_server()
+        # for DB connection
+        conn = MongoClient()
+        db = conn.blackchainIP
+        ip = db.IP
+        ip.stats # test if connection success
+        
 
     # open thread
     def start_socket_server(self):
@@ -21,7 +29,9 @@ class IPServer:
 
     # waiting for the connection by keeping listening
     def wait_for_socket_connection(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        with socket.socket(
+            
+            socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.socket_host, self.socket_port))
             s.listen()
             while True:
