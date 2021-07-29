@@ -1,9 +1,10 @@
 from pymongo import MongoClient
-from Wallet import generate_address
-from Wallet import encryption_password
-from Wallet import encryption_privatekey
-from Wallet import decryption_privatekey
+# from Wallet import generate_address
+# from Wallet import encryption_password
+# from Wallet import encryption_privatekey
+# from Wallet import decryption_privatekey
 import cryptocode
+import Wallet
 
 #local host
 conn = MongoClient()
@@ -46,7 +47,7 @@ def insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,wall
 def register():
   name = "臨終委"
   sex = "男"
-  birth = "2000-02-06"
+  birth = "2000-02-01"
   #database-date
   #birth = datetime.datetime.strptime("2017-10-13T10:53:53.000Z", "%Y-%m-%dT%H:%M:%S.000Z")
   email = "ALLENuglymail"
@@ -54,7 +55,7 @@ def register():
   address = ["台中"]
   idd = "aaaallenn"
   photo_id = "allenphoto"
-  walletaddress,privatekey = generate_address() #產生公私鑰地址
+  walletaddress,privatekey = Wallet.generate_address() #產生公私鑰地址
   public_key = walletaddress 
   private_key = str(privatekey).replace('\\n','') #過濾私鑰
   private_key = private_key.replace("b'-----BEGIN RSA PRIVATE KEY-----", '')
@@ -62,8 +63,8 @@ def register():
   private_key = private_key.replace(' ', '')
   #密碼
   password = "allenHI"
-  e_password = encryption_password(password,idd) #加密密碼
-  e_private_key = encryption_privatekey(private_key,password) #加密私鑰
+  e_password = Wallet.encryption_password(password,idd) #加密密碼
+  e_private_key = Wallet.encryption_privatekey(private_key,password) #加密私鑰
   insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,walletaddress,public_key,e_private_key,e_password)
 
 def insert_Information_demand(requester_id,applicant_id,Photo_id,productname,amount,details):
