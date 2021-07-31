@@ -1,10 +1,12 @@
+from getpass import getpass
 import sys
 import socket
 import threading
 import time
 import pickle
-from getpass import getpass
 import stdiomask
+import Wallet
+import Database
 
 def handle_receive(client):
     transfer_str('user, 2')
@@ -17,36 +19,42 @@ def transfer_str(client, ts):
     client.send(ts.encode())
 
 # login func.
-# return the dict of user's account, password
+# return the dict of user's account, password or {}
 def login():
     print('------- LOGIN -------')
     user_account = input('帳號      : ')
     user_password = stdiomask.getpass(prompt='密碼      : ', mask='*')
-    user_identity = stdiomask.getpass(prompt='身分證號碼: ', mask='*')
-    # --去資料庫取資料並比對，對的話回傳帳號和明文密碼
-    final_data = {'帳號': user_account, '密碼': user_password}
-    print(final_data)
-    return final_data
+
+    check_epass = Wallet.encryption_password(user_password, user_account)
+    db_epass = Database.Taken_password(user_account)
+    if (check_epass == db_epass):
+        final_data = {'帳號': user_account, '密碼': user_password}
+        return final_data
+    else:
+        print('登入失敗!')
+        return dict({})
 
 # sign up func.
-# return the dict of user's account, password
+# return the dict of user's account, password or {}
 def signup():
     print('------- SIGNUP (用戶資訊) -------')
-    user_name = input('姓名    : ')
-    user_sex = input('生理性別: ')
-    user_birth = input('生日    : ')
-    user_email = input('電子信箱: ')
-    user_phone = input('電話    : ')
-    user_address = input('地址    : ')
-    # --去資料庫取資料檢查用戶是否註冊過，無此用戶資訊才繼續建立帳戶
-    print('------- SIGNUP (建立帳戶) -------')
-    user_account = input('帳號      : ')
-    user_password = stdiomask.getpass(prompt='密碼      : ', mask='*')
-    user_identity = stdiomask.getpass(prompt='身分證號碼: ', mask='*')
-    # --資料庫建立帳戶，並匯入用戶資訊，註冊後即登入 回傳帳號和明文密碼
-    final_data = {'帳號': user_account, '密碼': user_password}
-    print(final_data)
-    return final_data
+    user_name = input('姓名      : ')
+    user_account = input('身分證號碼: ')
+    user_sex = input('生理性別 : ')
+    user_birth = input('生日      : ')
+    user_email = input('電子信箱 : ')
+    user_phone = input('電話      : ')
+    user_address = input('地址      : ')
+    check_account = Database.Check_account(user_account)
+    if check_account:
+        print('------- SIGNUP (建立帳戶) -------')
+        user_password = stdiomask.getpass(prompt='密碼      : ', mask='*')
+        # --資料庫建立帳戶，並匯入用戶資訊，註冊後即登入 回傳帳號和明文密碼
+        final_data = {'帳號': user_account, '密碼': user_password}
+        return final_data
+    else:
+        print('您已註冊過了!請選擇登入選項')
+        return dict({})
 
 if __name__ == "__main__":
     IPserver_host = '127.0.0.1'
@@ -61,15 +69,17 @@ if __name__ == "__main__":
     # receive_handler = threading.Thread(target=handle_receive, args=())
     # receive_handler.start()
 
-    # choose login or singup block
-    print('LOGIN or SIGN_UP (1/2)?: ', end='')
-    choose = int(input())
-    if choose == 1:
-        user_info = login()
-    elif choose == 2:
-        user_info = signup()
+    while(True):
+        # choose login or singup block
+        print('LOGIN or SIGN_UP (1/2)?: ', end='')
+        choose = int(input())
+        if choose == 1:
+            user_info = login()
+            if(user_info != dict({})): break
+        elif choose == 2:
+            user_info = signup()
     
-    while(user_info['密碼'] != ''):
+    while(True):
         for key, value in command_dict.items():
             print(key,end='')
             print(': ',end='')

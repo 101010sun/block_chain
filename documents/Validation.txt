@@ -1,0 +1,252 @@
+1//Information_user
+
+{
+  $jsonSchema: {
+    required: [
+      'name',
+      'sex',
+      'birth',
+      'email',
+      'phone',
+      'address',
+      'id',
+      'photo_id',
+      'walletaddress',
+      'public_key',
+      'private_key',
+      'e_password'
+    ],
+    properties: {
+      name: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      sex: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      birth: {
+        bsonType: 'string',
+        description: 'must be a string!'
+      },
+      email: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      phone: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      address: {
+        bsonType: [
+          'array'
+        ],
+        description: 'must be a string !'
+      },
+      id: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      photo_id: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      walletaddress: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      public_key: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      private_key: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      e_password: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      }
+    }
+  }
+}
+-------------------------------------------------------------------------
+2//Information_demand
+
+{
+  $jsonSchema: {
+    required: [
+      'requester_id',
+      'applicant_id',
+      'demand_imfor'
+    ],
+    properties: {
+      requester_id: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      applicant_id: {
+        bsonType: 'string',
+        description: 'must be a string!'
+      },
+      demand_imfor: {
+        bsonType: 'object',
+        required: [
+          'Photo_id',
+          'productname',
+          'amount',
+          'details'
+        ],
+        properties: {
+          Photo_id: {
+            bsonType: 'string',
+            description: 'must be a string !'
+          },
+          productname: {
+            bsonType: 'string',
+            description: 'must be a string !'
+          },
+          amount: {
+            bsonType: 'int',
+            description: 'must be a int !'
+          },
+          details: {
+            bsonType: 'string',
+            description: 'must be a string !'
+          }
+        }
+      }
+    }
+  }
+}
+-------------------------------------------------------------------------
+3//Photo
+
+{
+  $jsonSchema: {
+    required: [
+      'length',
+      'chunkSize',
+      'uploadDate',
+      'filename',
+      'metadata'
+    ],
+    properties: {
+      length: {
+        bsonType: 'int',
+        description: 'must be a int !'
+      },
+      chunkSize: {
+        bsonType: 'int',
+        description: 'must be a int!'
+      },
+      uploadDate: {
+        bsonType: 'date',
+        description: 'must be a date !'
+      },
+      filename: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      metadata: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      }
+    }
+  }
+}
+--------------------------------------------------------------------------
+4//Check_community_manager
+
+{
+  $jsonSchema: {
+    required: [
+      'applicant_id',
+      'reason'
+    ],
+    properties: {
+      applicant_id: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      reason: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      }
+    }
+  }
+}
+--------------------------------------------------------------------------
+5//Check_community_user
+
+{
+  $jsonSchema: {
+    required: [
+      'applicant_id',
+      'applyaddress'
+    ],
+    properties: {
+      applicant_id: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      applyaddress: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      }
+    }
+  }
+}
+--------------------------------------------------------------------------
+6//Check_createcommunity
+
+{
+  $jsonSchema: {
+    required: [
+      'applicant_id',
+      'communityname',
+      'communityaddress'
+    ],
+    properties: {
+      applicant_id: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      communityname: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      communityaddress: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      }
+    }
+  }
+}
+--------------------------------------------------------------------------
+7//Communitymembers
+
+{
+  $jsonSchema: {
+    required: [
+      'applicant_id',
+      'communityaddress',
+      'identity'
+    ],
+    properties: {
+      applicant_id: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      communityaddress: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      identity: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      }
+    }
+  }
+}
+--------------------------------------------------------------------------

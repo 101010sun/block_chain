@@ -23,6 +23,7 @@ col_Check_community_user.stats
 col_Check_createcommunity.stats
 col_Communitymembers.stats
 
+# 新增使用者資訊
 def insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,walletaddress,public_key,e_private_key,e_password): #加入帳戶資訊
     data = {
       'name':name,
@@ -97,19 +98,19 @@ def Check_userinfor(email,phone):
   else:
     return False
 
-# 檢查有無此帳號
-def Check_account(id):
-  cursor = col_Information_user.find({"id":str(id)})
+# 檢查此身分證號碼是否被使用過
+def Check_account(idd):
+  cursor = col_Information_user.find({"id":str(idd)})
   data = [d for d in cursor]
-  if data == []: 
-    return False
-  else:
+  if data == list([]): 
     return True
+  else:
+    return False
 
 # 取此帳號的加密密碼
-def Taken_password(id):
+def Taken_password(idd):
   projectionFields = ['e_password']
-  cursor = col_Information_user.find({"email":"53mail"}, projection = projectionFields)
+  cursor = col_Information_user.find({"id": str(idd)}, projection = projectionFields)
   data = [d for d in cursor]
-  return data
+  return str(data[0])
 
