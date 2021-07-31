@@ -1,8 +1,4 @@
 from pymongo import MongoClient
-# from Wallet import generate_address
-# from Wallet import encryption_password
-# from Wallet import encryption_privatekey
-# from Wallet import decryption_privatekey
 import cryptocode
 import Wallet
 
@@ -89,8 +85,9 @@ def insert_Photo(length,chunkSize,uploadDate,filename,metadata):
       'metadata': metadata
     }
     col_Photo.insert_one(data)
-
-def Check_userinfor(email,phone): #檢查有無相同此帳戶資訊
+    
+# 檢查有無相同此帳戶資訊
+def Check_userinfor(email,phone):
   cursor = col_Information_user.find({"email":str(email)})
   data = [d for d in cursor]
   cursor2 = col_Information_user.find({"phone":str(phone)})
@@ -100,7 +97,8 @@ def Check_userinfor(email,phone): #檢查有無相同此帳戶資訊
   else:
     return False
 
-def Check_account(id): #檢查有無此帳號
+# 檢查有無此帳號
+def Check_account(id):
   cursor = col_Information_user.find({"id":str(id)})
   data = [d for d in cursor]
   if data == []: 
@@ -108,7 +106,8 @@ def Check_account(id): #檢查有無此帳號
   else:
     return True
 
-def Taken_password(id):  #取此帳號的加密密碼
+# 取此帳號的加密密碼
+def Taken_password(id):
   projectionFields = ['e_password']
   cursor = col_Information_user.find({"email":"53mail"}, projection = projectionFields)
   data = [d for d in cursor]

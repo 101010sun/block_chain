@@ -2,6 +2,7 @@ import rsa
 import hashlib
 import cryptocode
 
+# 產生錢包地址
 def generate_address():
     public, private = rsa.newkeys(512) #rsa 
     #PublicKey(8110652037018951423415384068343669562112781192066917099227440355062887030082561641925872544251324619419460659259927466333657527066898085681936273858467987, 65537)
@@ -21,6 +22,7 @@ def generate_address():
     address = address.replace(' ', '')
     return address, private_key
 
+# 加密明文密碼
 def encryption_password(password,id):
     s = hashlib.sha256()
     s.update(
@@ -32,11 +34,12 @@ def encryption_password(password,id):
     h = s.hexdigest() #get hash
     return h
 
-def encryption_privatekey(private_key,password): #加密私鑰
+# 加密私鑰
+def encryption_privatekey(private_key,password):
     e_private_key = cryptocode.encrypt(str(private_key),str(password))
     return e_private_key
 
-def decryption_privatekey(e_private_key,password): #解密私鑰
+# 解密私鑰
+def decryption_privatekey(e_private_key,password):
     private_key = cryptocode.decrypt(str(e_private_key),str(password))
     return private_key
-
