@@ -1,0 +1,49 @@
+[{
+  "_id": {
+    "$oid": "61071e55917a0bd742dcfb72"
+  },
+  "requester_id": {
+    "$oid": "61071198a38e42fb9e4b4a24"
+  },
+  "applicant_id": {
+    "$oid": "6107125a7391e668b8407511"
+  },
+  "demand_imfor": {
+    "Photo_id": "Photo_id",
+    "productname": "腳踏車",
+    "amount": 100,
+    "details": "生鏽了"
+  }
+},{
+  "_id": {
+    "$oid": "61071ef518fb593b72e2a414"
+  },
+  "requester_id": {
+    "$oid": "6107125a7391e668b8407511"
+  },
+  "applicant_id": {
+    "$oid": "61071198a38e42fb9e4b4a24"
+  },
+  "demand_imfor": {
+    "Photo_id": "Photo_id2",
+    "productname": "書",
+    "amount": 100,
+    "details": "好好讀書"
+  }
+},{
+  "_id": {
+    "$oid": "61071f15aced323c5b1e4925"
+  },
+  "requester_id": {
+    "$oid": "6107125a7391e668b8407511"
+  },
+  "applicant_id": {
+    "$oid": "6107129617d3c57cdf4aad38"
+  },
+  "demand_imfor": {
+    "Photo_id": "Photo_id2",
+    "productname": "沙發",
+    "amount": 300,
+    "details": "很好ㄋ"
+  }
+}]

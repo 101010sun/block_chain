@@ -33,12 +33,12 @@ def get_balance(self, account):
     balance = 0
     for block in self.chain:
         # Check miner reward
-        miner = False
-        if block.miner == account:
-            miner = True
+        node = False
+        if block.node == account:
+            node = True
             balance += block.miner_rewards
         for transaction in block.transactions:
-            if miner:
+            if node:
                 balance += transaction.fee
             if transaction.sender == account:
                 balance -= transaction.amounts

@@ -1,0 +1,46 @@
+[{
+  "_id": {
+    "$oid": "610723d88c0e43fe10a60ff9"
+  },
+  "user_id": {
+    "$oid": "6107205294c0b981697f05b3"
+  },
+  "communityaddress": "407台中市西屯區逢大路18號",
+  "identity": "社區管理員"
+},{
+  "_id": {
+    "$oid": "610723d88c0e43fe10a60ffa"
+  },
+  "user_id": {
+    "$oid": "6107209da0032317f9ae9cb0"
+  },
+  "communityaddress": "407台中市西屯區逢大路18號",
+  "identity": "一般用戶"
+},{
+  "_id": {
+    "$oid": "610723d88c0e43fe10a60ffb"
+  },
+  "user_id": {
+    "$oid": "6107129617d3c57cdf4aad38"
+  },
+  "communityaddress": "407台中市西屯區逢大路18號",
+  "identity": "一般用戶"
+},{
+  "_id": {
+    "$oid": "610723d88c0e43fe10a60ffc"
+  },
+  "user_id": {
+    "$oid": "6107125a7391e668b8407511"
+  },
+  "communityaddress": "407台中市西屯區逢大路18號",
+  "identity": "一般用戶"
+},{
+  "_id": {
+    "$oid": "610723d88c0e43fe10a60ffd"
+  },
+  "user_id": {
+    "$oid": "61071198a38e42fb9e4b4a24"
+  },
+  "communityaddress": "407台中市西屯區逢大路18號",
+  "identity": "一般用戶"
+}]

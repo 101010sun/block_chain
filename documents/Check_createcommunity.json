@@ -1,0 +1,19 @@
+[{
+  "_id": {
+    "$oid": "6107231e8d98e3902e9bc299"
+  },
+  "applicant_id": {
+    "$oid": "6107205294c0b981697f05b3"
+  },
+  "communityname": "幸福社區",
+  "communityaddress": "台中"
+},{
+  "_id": {
+    "$oid": "6107231e8d98e3902e9bc29a"
+  },
+  "applicant_id": {
+    "$oid": "6107209da0032317f9ae9cb0"
+  },
+  "communityname": "快樂社區",
+  "communityaddress": "台北"
+}]

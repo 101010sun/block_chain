@@ -24,7 +24,7 @@ def generate_address():
     address = address.replace("-----END RSA PUBLIC KEY-----'", '')
     address = address.replace(' ', '')
     #過濾私鑰
-    private_key = str(privatekey).replace('\\n','') 
+    private_key = str(private_key).replace('\\n','') 
     private_key = private_key.replace("b'-----BEGIN RSA PRIVATE KEY-----", '')
     private_key = private_key.replace("-----END RSA PRIVATE KEY-----'", '')
     private_key = private_key.replace(' ', '')
@@ -32,16 +32,16 @@ def generate_address():
 
 # 加密明文密碼
 # return: 加密密碼
-def encryption_password(password, idd):
+def encryption_password(password, e_id_card):
     s = hashlib.sha256()
     s.update(
         (
            str(password)
-           +str(idd)
+           +str(e_id_card)
         ).encode("utf-8")
     ) #Update hash SHA256
-    h = s.hexdigest() #get hash
-    return h
+    e_password = s.hexdigest() #get hash
+    return e_password
 
 # 加密私鑰
 def encryption_privatekey(private_key, password):
@@ -53,3 +53,16 @@ def encryption_privatekey(private_key, password):
 def decryption_privatekey(e_private_key, password):
     private_key = cryptocode.decrypt(str(e_private_key),str(password))
     return private_key
+
+# 加密身分證字號
+# return: 加密身分證字號
+def encryption_id_card(id_card, account):
+    s = hashlib.sha256()
+    s.update(
+        (
+           str(id_card)
+           +str(account)
+        ).encode("utf-8")
+    ) #Update hash SHA256
+    e_id_card = s.hexdigest() #get hash
+    return e_id_card
