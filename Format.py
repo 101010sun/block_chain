@@ -1,4 +1,5 @@
 import time
+
 class Transaction: 
     def __init__(self,sender,receiver,amounts,fee,message,community):
         self.sender = sender 
@@ -8,12 +9,9 @@ class Transaction:
         self.message = message 
         self.community = community
 
-    """ # 方法(Method)
-    def test(self):
-        print(f"Sender:{self.sender}\nReceiver:{self.receiver}\nAmounts:{self.amounts}\nFee:{self.fee}\nMessage:{self.message}")
-
-Firsttrans = Transaction("father", "son",10000,15,"生活費")
-Firsttrans.test()  #執行結果 """
+    #  # test method
+    # def test(self):
+    #     print(f"Sender:{self.sender}\nReceiver:{self.receiver}\nAmounts:{self.amounts}\nFee:{self.fee}\nMessage:{self.message}")
 
 class Block: 
     def __init__(self,previous_hash,node):
@@ -31,3 +29,7 @@ class BlockChain:
         self.block_limitation = 32 
         self.chain = [] #All block store in blockchain now
         self.pending_transactions = [] #transactions pool
+
+
+# Firsttrans = Transaction("father", "son",10000,15,"生活費")
+# Firsttrans.test()  #執行結果 

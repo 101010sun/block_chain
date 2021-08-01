@@ -1,8 +1,13 @@
 from pymongo import MongoClient
+<<<<<<< HEAD
 import Wallet
 import cryptocode
 from gridfs import *
 import os
+=======
+import cryptocode
+import Wallet
+>>>>>>> 595a844305d88163beecb7ba720c0935b18dc490
 
 #local host
 conn = MongoClient()
@@ -25,7 +30,12 @@ col_Check_community_user.stats
 col_Check_createcommunity.stats
 col_Communitymembers.stats
 
+<<<<<<< HEAD
 def insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,walletaddress,public_key,e_private_key,e_password): #加入_帳戶資訊
+=======
+# 新增使用者資訊
+def insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,walletaddress,public_key,e_private_key,e_password): #加入帳戶資訊
+>>>>>>> 595a844305d88163beecb7ba720c0935b18dc490
     data = {
       'name': name,
       'sex': sex,
@@ -45,7 +55,7 @@ def insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,wall
 def register():
   name = "臨終委"
   sex = "男"
-  birth = "2000-02-06"
+  birth = "2000-02-01"
   #database-date
   #birth = datetime.datetime.strptime("2017-10-13T10:53:53.000Z", "%Y-%m-%dT%H:%M:%S.000Z")
   email = "ALLENuglymail"
@@ -53,7 +63,11 @@ def register():
   address = ["台中"]
   idd = "aaaallenn"
   photo_id = "allenphoto"
+<<<<<<< HEAD
   walletaddress,private_key = Wallet.generate_address() #產生公私鑰地址
+=======
+  walletaddress,privatekey = Wallet.generate_address() #產生公私鑰地址
+>>>>>>> 595a844305d88163beecb7ba720c0935b18dc490
   public_key = walletaddress 
   #密碼
   password = "allenHI"
@@ -83,6 +97,7 @@ def insert_Photo(length,chunkSize,uploadDate,filename,metadata): #加入_圖檔
       'metadata': metadata
     }
     col_Photo.insert_one(data)
+<<<<<<< HEAD
 
 def insert_Check_community_manager(applicant_id,reason): #加入_社區管理員審核名單
     data = {
@@ -115,6 +130,11 @@ def insert_Communitymembers(user_id,communityaddress,identity): #加入_社區�
     col_Communitymembers.insert_one(data)   
 
 def Check_userinfor(email,phone): #檢查有無相同此帳戶資訊
+=======
+    
+# 檢查有無相同此帳戶資訊
+def Check_userinfor(email,phone):
+>>>>>>> 595a844305d88163beecb7ba720c0935b18dc490
   cursor = col_Information_user.find({"email":str(email)})
   data = [d for d in cursor]
   cursor2 = col_Information_user.find({"phone":str(phone)})
@@ -124,17 +144,19 @@ def Check_userinfor(email,phone): #檢查有無相同此帳戶資訊
   else:
     return False
 
-def Check_account(id): #檢查有無此帳號
-  cursor = col_Information_user.find({"id":str(id)})
+# 檢查此身分證號碼是否被使用過
+def Check_account(idd):
+  cursor = col_Information_user.find({"id":str(idd)})
   data = [d for d in cursor]
-  if data == []: 
-    return False
-  else:
+  if data == list([]): 
     return True
+  else:
+    return False
 
-def Taken_password(id):  #取此帳號的加密密碼
+# 取此帳號的加密密碼
+def Taken_password(idd):
   projectionFields = ['e_password']
-  cursor = col_Information_user.find({"email":"53mail"}, projection = projectionFields)
+  cursor = col_Information_user.find({"id": str(idd)}, projection = projectionFields)
   data = [d for d in cursor]
-  return data
+  return str(data[0])
 
