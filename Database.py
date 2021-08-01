@@ -1,9 +1,8 @@
 from pymongo import MongoClient
-from Wallet import generate_address
-from Wallet import encryption_password
-from Wallet import encryption_privatekey
-from Wallet import decryption_privatekey
+import Wallet
 import cryptocode
+from gridfs import *
+import os
 
 #local host
 conn = MongoClient()
@@ -26,9 +25,9 @@ col_Check_community_user.stats
 col_Check_createcommunity.stats
 col_Communitymembers.stats
 
-def insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,walletaddress,public_key,e_private_key,e_password): #加入帳戶資訊
+def insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,walletaddress,public_key,e_private_key,e_password): #加入_帳戶資訊
     data = {
-      'name':name,
+      'name': name,
       'sex': sex,
       'birth': birth,
       'email': email,
@@ -54,21 +53,17 @@ def register():
   address = ["台中"]
   idd = "aaaallenn"
   photo_id = "allenphoto"
-  walletaddress,privatekey = generate_address() #產生公私鑰地址
+  walletaddress,private_key = Wallet.generate_address() #產生公私鑰地址
   public_key = walletaddress 
-  private_key = str(privatekey).replace('\\n','') #過濾私鑰
-  private_key = private_key.replace("b'-----BEGIN RSA PRIVATE KEY-----", '')
-  private_key = private_key.replace("-----END RSA PRIVATE KEY-----'", '')
-  private_key = private_key.replace(' ', '')
   #密碼
   password = "allenHI"
-  e_password = encryption_password(password,idd) #加密密碼
-  e_private_key = encryption_privatekey(private_key,password) #加密私鑰
+  e_password = Wallet.encryption_password(password,idd) #加密密碼
+  e_private_key = Wallet.encryption_privatekey(private_key,password) #加密私鑰
   insert_Information_user(name,sex,birth,email,phone,address,idd,photo_id,walletaddress,public_key,e_private_key,e_password)
 
-def insert_Information_demand(requester_id,applicant_id,Photo_id,productname,amount,details):
+def insert_Information_demand(requester_id,applicant_id,Photo_id,productname,amount,details): #加入_需求資訊
     data = {
-      'requester_id':requester_id,
+      'requester_id': requester_id,
       'applicant_id': applicant_id,
       'demand_imfor':{
         'Photo_id': Photo_id,
@@ -79,15 +74,45 @@ def insert_Information_demand(requester_id,applicant_id,Photo_id,productname,amo
     }
     col_Information_demand.insert_one(data)
 
-def insert_Photo(length,chunkSize,uploadDate,filename,metadata):
+def insert_Photo(length,chunkSize,uploadDate,filename,metadata): #加入_圖檔
     data = {
-      'length':length,
+      'length': length,
       'chunkSize': chunkSize,
       'uploadDate': uploadDate,
       'filename': filename,
       'metadata': metadata
     }
     col_Photo.insert_one(data)
+
+def insert_Check_community_manager(applicant_id,reason): #加入_社區管理員審核名單
+    data = {
+      'applicant_id': applicant_id,
+      'reason': reason
+    }
+    col_Check_community_manager.insert_one(data)
+
+def insert_Check_community_user(applicant_id,applyaddress): #加入_社區用戶審核名單
+    data = {
+      'applicant_id': applicant_id,
+      'applyaddress': applyaddress
+    }
+    col_Check_community_user.insert_one(data)
+
+def insert_Check_createcommunity(applicant_id,communityname,communityaddress): #加入_創建社區審核清單
+    data = {
+      'applicant_id': applicant_id,
+      'communityname': communityname,
+      'communityaddress': communityaddress
+    }
+    col_Check_createcommunity.insert_one(data)   
+
+def insert_Communitymembers(user_id,communityaddress,identity): #加入_社區用戶名單
+    data = {
+      'user_id':user_id, ###改Validation 取名
+      'communityaddress': communityaddress,
+      'identity': identity
+    }
+    col_Communitymembers.insert_one(data)   
 
 def Check_userinfor(email,phone): #檢查有無相同此帳戶資訊
   cursor = col_Information_user.find({"email":str(email)})

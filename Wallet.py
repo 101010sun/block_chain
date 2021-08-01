@@ -15,10 +15,17 @@ def generate_address():
     with open('private.pem','wb')as f:
         f.write(private_key)
     #print(str(public_key))
+    
+    #過濾地址
     address = str(public_key).replace('\\n','')
     address = address.replace("b'-----BEGIN RSA PUBLIC KEY-----", '')
     address = address.replace("-----END RSA PUBLIC KEY-----'", '')
     address = address.replace(' ', '')
+    #過濾私鑰
+    private_key = str(privatekey).replace('\\n','') 
+    private_key = private_key.replace("b'-----BEGIN RSA PRIVATE KEY-----", '')
+    private_key = private_key.replace("-----END RSA PRIVATE KEY-----'", '')
+    private_key = private_key.replace(' ', '')
     return address, private_key
 
 def encryption_password(password,id):
