@@ -128,22 +128,26 @@ def Check_userinfor(email,phone): #檢查有無相同此帳戶資訊
   data = [d for d in cursor]
   cursor2 = col_Information_user.find({"phone":str(phone)})
   data2 = [d for d in cursor2]
-  if data == [] and data2 == []:
-    return True
-  else:
+  if data == [] and data2 == []: #無相同帳戶資訊使用
     return False
+  else: #有相同帳戶資訊
+    return True
+
 # 檢查此身分證號碼是否被使用過
 def Check_account(id_card):
-  cursor = col_Information_user.find({"id":str(id_card)})
+  cursor = col_Information_user.find({"id_card":str(id_card)})
   data = [d for d in cursor]
-  if data == list([]): 
+  if data == list([]): #未被使用
     return True
-  else:
+  else: #已使用
     return False
 
 # 取此帳號的加密密碼
 def Taken_password(account):
   projectionFields = ['e_password']
-  cursor = col_Information_user.find({"id": str(account)}, projection = projectionFields)
+  cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
   data = [d for d in cursor]
-  return str(data[0])
+  print(data)
+  #return str(data[0])
+
+
