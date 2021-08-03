@@ -56,12 +56,11 @@ def decryption_privatekey(e_private_key, password):
 
 # 加密身分證字號
 # return: 加密身分證字號
-def encryption_id_card(id_card, account):
+def encryption_id_card(id_card):
     s = hashlib.sha256()
     s.update(
         (
            str(id_card)
-           +str(account)
         ).encode("utf-8")
     ) #Update hash SHA256
     e_id_card = s.hexdigest() #get hash
