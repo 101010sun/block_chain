@@ -5,11 +5,12 @@
     required: [
       'name',
       'sex',
+      'id_card',
       'birth',
       'email',
       'phone',
       'address',
-      'id',
+      'account',
       'photo_id',
       'walletaddress',
       'public_key',
@@ -22,6 +23,10 @@
         description: 'must be a string !'
       },
       sex: {
+        bsonType: 'string',
+        description: 'must be a string !'
+      },
+      id_card: {
         bsonType: 'string',
         description: 'must be a string !'
       },
@@ -43,7 +48,7 @@
         ],
         description: 'must be a string !'
       },
-      id: {
+      account: {
         bsonType: 'string',
         description: 'must be a string !'
       },
@@ -82,12 +87,12 @@
     ],
     properties: {
       requester_id: {
-        bsonType: 'string',
-        description: 'must be a string !'
+        bsonType: 'objectId',
+        description: 'must be a objectId !'
       },
       applicant_id: {
-        bsonType: 'string',
-        description: 'must be a string!'
+        bsonType: 'objectId',
+        description: 'must be a objectId!'
       },
       demand_imfor: {
         bsonType: 'object',
@@ -166,8 +171,8 @@
     ],
     properties: {
       applicant_id: {
-        bsonType: 'string',
-        description: 'must be a string !'
+        bsonType: 'objectId',
+        description: 'must be a objectId !'
       },
       reason: {
         bsonType: 'string',
@@ -187,8 +192,8 @@
     ],
     properties: {
       applicant_id: {
-        bsonType: 'string',
-        description: 'must be a string !'
+        bsonType: 'objectId',
+        description: 'must be a objectId !'
       },
       applyaddress: {
         bsonType: 'string',
@@ -209,8 +214,8 @@
     ],
     properties: {
       applicant_id: {
-        bsonType: 'string',
-        description: 'must be a string !'
+        bsonType: 'objectId',
+        description: 'must be a objectId !'
       },
       communityname: {
         bsonType: 'string',
@@ -229,14 +234,14 @@
 {
   $jsonSchema: {
     required: [
-      'applicant_id',
+      'user_id',
       'communityaddress',
       'identity'
     ],
     properties: {
-      applicant_id: {
-        bsonType: 'string',
-        description: 'must be a string !'
+      user_id: {
+        bsonType: 'objectId',
+        description: 'must be a objectId !'
       },
       communityaddress: {
         bsonType: 'string',
