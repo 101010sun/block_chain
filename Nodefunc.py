@@ -1,4 +1,5 @@
 import time
+import Format
 
 def add_transaction_to_block(self, block): #放置交易紀錄至新區塊中
     # Get the transaction with highest fee by block_limitation
@@ -15,7 +16,7 @@ def node_block(self, node): #挖掘新區塊
     start = time.process_time()
 
     last_block = self.chain[-1]
-    new_block = Block(last_block.hash,node)
+    new_block = Format.Block(last_block.hash,node)
 
     self.add_transaction_to_block(new_block)
     new_block.previous_hash = last_block.hash

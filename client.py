@@ -46,10 +46,10 @@ def signup():
     user_email = input('電子信箱 : ')
     user_phone = input('電話      : ')
     user_address = input('地址      : ')
-    # --驗證此身分證有沒有註冊過
-    # check_account = Database.Check_account(user_id)
+    e_id = Wallet.encryption_id_card(user_id)
+    check_id = Database.Check_account(e_id)
     check_account = Database.Check_userinfor(user_email, user_phone)
-    if check_account:
+    if check_account and check_id:
         print('------- SIGNUP (建立帳戶) -------')
         user_account = input('帳號      : ')
         user_password = stdiomask.getpass(prompt='密碼      : ', mask='*')
@@ -57,7 +57,7 @@ def signup():
         public_key = walletaddress
         e_password = Wallet.encryption_password(user_password,user_id) # 加密密碼 (明文身分證)
         e_private_key = Wallet.encryption_privatekey(private_key,user_password) # 加密私鑰 (明文密碼)
-        Database.insert_Information_user(user_name, user_sex, user_id, user_birth, user_email, user_phone, user_address, user_account, 'test', walletaddress, public_key, e_private_key, e_password)
+        Database.insert_Information_user(user_name, user_sex, e_id, user_birth, user_email, user_phone, user_address, user_account, 'test', walletaddress, public_key, e_private_key, e_password)
         final_data = {'帳號': user_account, '密碼': user_password}
         return final_data
     else:
