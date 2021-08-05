@@ -1,7 +1,8 @@
 import time
 import Format
 
-def add_transaction_to_block(self, block): #放置交易紀錄至新區塊中
+# 放置交易紀錄至新區塊中
+def add_transaction_to_block(self, block):
     # Get the transaction with highest fee by block_limitation
     self.pending_transactions.sort(key=lambda x: x.fee, reverse=True)
     if len(self.pending_transactions) > self.block_limitation:
@@ -12,7 +13,8 @@ def add_transaction_to_block(self, block): #放置交易紀錄至新區塊中
         self.pending_transactions = []
     block.transactions = transcation_accepted
 
-def node_block(self, node): #挖掘新區塊
+# 挖掘新區塊
+def node_block(self, node):
     start = time.process_time()
 
     last_block = self.chain[-1]
@@ -48,7 +50,8 @@ def get_balance(self, account):
                 balance += transaction.amounts
     return balance
 
-def verify_blockchain(self): #確認雜湊值是否正確
+# 確認雜湊值是否正確
+def verify_blockchain(self):
     previous_hash = ''
     for idx,block in enumerate(self.chain):
         if self.get_hash(block, block.nonce) != block.hash:

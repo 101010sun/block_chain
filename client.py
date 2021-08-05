@@ -48,8 +48,8 @@ def signup():
     user_address = input('地址      : ')
     e_id = Wallet.encryption_id_card(user_id)
     check_id = Database.Check_account(e_id)
-    check_account = Database.Check_userinfor(user_email, user_phone)
-    if check_account and check_id:
+    # check_account = Database.Check_userinfor(user_email, user_phone)
+    if check_id:
         print('------- SIGNUP (建立帳戶) -------')
         user_account = input('帳號      : ')
         user_password = stdiomask.getpass(prompt='密碼      : ', mask='*')
