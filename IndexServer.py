@@ -19,7 +19,7 @@ class IPServer:
         self.target_host = ''
         self.target_port = int(0)
         self.start_socket_server()
-        self.main_node = self.find_all_node() # IP, Port_number, State
+        self.main_node = self.find_all_node() # IP, Port_number, State(0: free, 1: busy, 2: blocking)
     
     # find all node data from db
     # return list of dict of the data
@@ -27,10 +27,9 @@ class IPServer:
         cursor = self.col_main_node.find({})
         data = list([])
         for d in cursor:
-            tmp = {'IP': d['IP'], 'Port_number': int(d['port']), 'State': True}
+            tmp = {'IP': d['IP'], 'Port_number': int(d['port']), 'State': int(0)}
             data.append(tmp)
-        if data != list([]): return data
-        else: return None
+        return data
 
     # insert node data to db
     def insert_node(self, ip, port):
@@ -43,8 +42,20 @@ class IPServer:
         final_data = None
         index = 0
         for n in self.main_node:
-            if n['State']:
-                n['State'] = False
+            if n['State'] == 0:
+                final_data = index
+                break
+            else:
+                index += 1
+        return final_data
+
+    # get the blocking main node
+    # return the index of the node's list
+    def get_block_node(self):
+        final_data = None
+        index = 0
+        for n in self.main_node:
+            if n['State'] == 2:
                 final_data = index
                 break
             else:
@@ -98,19 +109,18 @@ class IPServer:
                     while(True):
                         node_index = self.get_free_node()
                         if node_index != None: break
-                    # send work_node to ask_node
+                    # send work_node loc to ask_node
                     response = {"IP": self.main_node[node_index]['IP'], "Port_number": self.main_node[node_index]['Port_number']}
-                    self.main_node[node_index]['State'] = True
+                    self.main_node[node_index]['State'] = 1
                     connection.send(pickle.dumps(response))
 
                 elif parsed_message["identity"] == "user" and parsed_message["request"] == "transaction":
                     # get work_node loc
                     while(True):
-                        node_index = self.get_free_node()
+                        node_index = self.get_block_node()
                         if node_index != None: break
-                    # send work_node to ask_node
+                    # send work_node loc to ask_node
                     response = {"IP": self.main_node[node_index]['IP'], "Port_number": self.main_node[node_index]['Port_number']}
-                    self.main_node[node_index]['State'] = True
                     connection.send(pickle.dumps(response))
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
@@ -119,9 +129,9 @@ class IPServer:
                     while(True):
                         node_index = self.get_free_node()
                         if node_index != None: break
-                    # send work_node to new_node
+                    # send work_node loc to new_node
                     response = {"IP": self.main_node[node_index]['IP'], "Port_number": self.main_node[node_index]['Port_number']}
-                    self.main_node[node_index]['State'] = True
+                    self.main_node[node_index]['State'] = 1
                     connection.send(pickle.dumps(response))
                     # receive new_node loc
                     message = connection.recv(1024)
@@ -134,10 +144,10 @@ class IPServer:
                     new_ip = parsed_message['IP']
                     new_port = int(parsed_message['Port_number'])
                     self.insert_node(new_ip, new_port)
-                    new_node = {'IP': new_ip, 'Port_number': new_port, 'State': True}
+                    new_node = {'IP': new_ip, 'Port_number': new_port, 'State': 1}
                     self.main_node.append(new_node)
 
-                elif parsed_message["identity"] == "node" and parsed_message["request"] == "done":
+                elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_normal":
                     # receive done_node loc
                     message = connection.recv(1024)
                     try:
@@ -149,9 +159,31 @@ class IPServer:
                     done_port = int(parsed_message['Port_number'])
                     done_index = self.get_node_index(done_ip, done_port)
                     # set done_node's state to free and to the end
-                    self.main_node[done_index]['State'] = False
+                    self.main_node[done_index]['State'] = 0
                     self.main_node.append(self.main_node[done_index])
                     self.main_node.remove(self.main_node[done_index])
+
+                elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_block":
+                    # receive done_node loc
+                    message = connection.recv(1024)
+                    try:
+                        parsed_message = pickle.loads(message)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(f"[*] Received: {parsed_message}")
+                    done_ip = parsed_message['IP']
+                    done_port = int(parsed_message['Port_number'])
+                    done_index = self.get_node_index(done_ip, done_port)
+                    # set done_node's state to busy
+                    self.main_node[done_index]['State'] = 1
+                    # get next_node loc
+                    while(True):
+                        next_index = self.get_free_node()
+                        if next_index != None: break
+                    # send next_node loc to done_node
+                    response = {"IP": self.main_node[next_index]['IP'], "Port_number": self.main_node[next_index]['Port_number']}
+                    self.main_node[next_index]['State'] = 2
+                    connection.send(pickle.dumps(response))
 
 if __name__ == "__main__":
     server = IPServer()
