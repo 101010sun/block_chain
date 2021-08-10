@@ -43,17 +43,6 @@ def encryption_password(password, e_id_card):
     e_password = s.hexdigest() #get hash
     return e_password
 
-# 加密私鑰
-def encryption_privatekey(private_key, password):
-    e_private_key = cryptocode.encrypt(str(private_key),str(password))
-    return e_private_key
-
-# 解密私鑰
-# return: 私鑰
-def decryption_privatekey(e_private_key, password):
-    private_key = cryptocode.decrypt(str(e_private_key),str(password))
-    return private_key
-
 # 加密身分證字號
 # return: 加密身分證字號
 def encryption_id_card(id_card):
@@ -65,3 +54,15 @@ def encryption_id_card(id_card):
     ) #Update hash SHA256
     e_id_card = s.hexdigest() #get hash
     return e_id_card
+
+# 加密私鑰
+def encryption_privatekey(private_key, password):
+    e_private_key = cryptocode.encrypt(str(private_key),str(password))
+    return e_private_key
+
+# 解密私鑰
+# return: 私鑰
+def decryption_privatekey(e_private_key, password):
+    private_key = cryptocode.decrypt(str(e_private_key),str(password))
+    return private_key
+
