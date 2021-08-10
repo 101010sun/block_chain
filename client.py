@@ -117,28 +117,24 @@ if __name__ == "__main__":
                 print("[*] target_host: " + target_host)
                 print("[*] target_port: " + target_port)
 
-            IPclient.shutdown(2)
-            IPclient.close()
-            # --聯絡此target節點，跟節點說要查詢，並取得錢包總額資料
-            break
+                IPclient.shutdown(2)
+                IPclient.close()
+                # --聯絡此target節點，跟節點說要查詢，並取得錢包總額資料
+                break
         
         elif command_dict[str(command)] == "transaction":
             # build the connection with IPserver
             IPclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             IPclient.connect((IPserver_host, IPserver_port))
-
             # send the msg. to IPserver
             IPclient.send(pickle.dumps(message))
             # waiting for the IPserver response
             response = IPclient.recv(4096)
             if response:
-                # print(f"[*] Message from node: {response}")
                 try:
                     parsed_message = pickle.loads(response)
                 except Exception:
                     print(f"{message} cannot be parsed")
-
-                # print(f"[*] Message from node: {parsed_message}")
                 target_host = parsed_message['IP']
                 target_port = parsed_message['Port_number']
                 print("[*] target_host: ", end="")
@@ -146,10 +142,10 @@ if __name__ == "__main__":
                 print("[*] target_port: ", end="")
                 print(target_port)
 
-            IPclient.shutdown(2)
-            IPclient.close()
-            print('connection close')
-            break
+                IPclient.shutdown(2)
+                IPclient.close()
+                print('connection close')
+                break
 
         elif command_dict[str(command)] == "exit":
             break
