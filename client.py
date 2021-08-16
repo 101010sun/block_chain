@@ -18,7 +18,6 @@ def handle_receive(client):
 def transfer_str(client, ts):
     client.send(ts.encode())
 
-# login func.
 # return the dict of user's account, password or {}
 def login():
     print('------- LOGIN -------')
@@ -35,7 +34,6 @@ def login():
         print('登入失敗!')
         return dict({})
 
-# sign up func.
 # return the dict of user's account, password or {}
 def signup():
     print('------- SIGNUP (用戶資訊) -------')
@@ -64,13 +62,66 @@ def signup():
         print('您已註冊過了!請選擇登入選項')
         return dict({})
 
+# 告知索引伺服器 查詢資料請求
+# return: 目標節點位置 or {}
+def user_get_balance(IPserver_host, IPserver_port, message):
+    # build the connection with IPserver
+    IPclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    IPclient.connect((IPserver_host, IPserver_port))
+    # 發送身分、請求
+    IPclient.send(pickle.dumps(message))
+    # waiting for the IPserver response
+    response = IPclient.recv(4096)
+    if response:
+        try:
+            parsed_message = pickle.loads(response)
+        except Exception:
+            print(f"{message} cannot be parsed")
+        target_host = parsed_message['IP']
+        target_port = int(parsed_message['Port_number'])
+        tmp = {'IP': target_host, 'Port_number': target_port}
+        IPclient.shutdown(2)
+        IPclient.close()
+        print('[*] ',end='')
+        print(tmp)
+        print('connection close')
+        # --聯絡此target節點，跟節點說要查詢，並取得錢包總額資料
+        return tmp
+    return {}
+
+# 告知索引伺服器 發起交易請求
+# return: 目標節點位置 or {}
+def user_transaction(IPserver_host, IPserver_port, message):
+    # build the connection with IPserver
+    IPclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    IPclient.connect((IPserver_host, IPserver_port))
+    # 發送身分、請求
+    IPclient.send(pickle.dumps(message))
+    # waiting for the IPserver response
+    response = IPclient.recv(4096)
+    if response:
+        try:
+            parsed_message = pickle.loads(response)
+        except Exception:
+            print(f"{message} cannot be parsed")
+        target_host = parsed_message['IP']
+        target_port = int(parsed_message['Port_number'])
+        print("[*] target_host: ", end="")
+        tmp = {'IP': target_host, 'Port_number': target_port}
+        IPclient.shutdown(2)
+        IPclient.close()
+        print('[*] ',end='')
+        print(tmp)
+        print('connection close')
+        # --與產生新區塊節點端連線
+        return tmp
+    return {}
+
 if __name__ == "__main__":
     IPserver_host = '127.0.0.1'
     IPserver_port = int(sys.argv[1])
-
     target_host = ""
     target_port = int(0)
-    # user menu dict
     command_dict = {"1": "get_balance", "2": "transaction", "3": "exit"}
     # 與節點端連線使用
     # #open one thread keeping receiving the message sended from socket
@@ -99,56 +150,20 @@ if __name__ == "__main__":
             continue
         message = {"identity": "user", "request": command_dict[str(command)]}
 
-        if command_dict[str(command)] == "get_balance": # 查詢錢包總額
-            # build the connection with IPserver
-            IPclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            IPclient.connect((IPserver_host, IPserver_port))
-            # 發送身分、請求
-            IPclient.send(pickle.dumps(message))
-            # waiting for the IPserver response
-            response = IPclient.recv(4096)
-            if response:
-                try:
-                    parsed_message = pickle.loads(response)
-                except Exception:
-                    print(f"{message} cannot be parsed")
-                target_host = parsed_message['IP']
-                target_port = int(parsed_message['Port_number'])
-                print("[*] target_host: ", end="")
-                print(target_host)
-                print("[*] target_port: ", end="")
-                print(target_port)
-
-                IPclient.shutdown(2)
-                IPclient.close()
-                # --聯絡此target節點，跟節點說要查詢，並取得錢包總額資料
-                break
+        if command_dict[str(command)] == "get_balance":
+            rec = user_get_balance(IPserver_host, IPserver_port, message)
+            if rec != {}:
+                target_host = rec['IP']
+                target_port = rec['Port_number']
+            else: print('[*] Get Balance Fail!')
         
         elif command_dict[str(command)] == "transaction":
-            # build the connection with IPserver
-            IPclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            IPclient.connect((IPserver_host, IPserver_port))
-            # 發送身分、請求
-            IPclient.send(pickle.dumps(message))
-            # waiting for the IPserver response
-            response = IPclient.recv(4096)
-            if response:
-                try:
-                    parsed_message = pickle.loads(response)
-                except Exception:
-                    print(f"{message} cannot be parsed")
-                target_host = parsed_message['IP']
-                target_port = int(parsed_message['Port_number'])
-                print("[*] target_host: ", end="")
-                print(target_host)
-                print("[*] target_port: ", end="")
-                print(target_port)
-
-                IPclient.shutdown(2)
-                IPclient.close()
-                print('connection close')
-                # --與產生新區塊節點端連線
-                break
+            rec = user_transaction(IPserver_host, IPserver_port, message)
+            if rec != {}:
+                target_host = rec['IP']
+                target_port = rec['Port_number']
+            else:
+                print('[*] Trancation Fail!')
 
         elif command_dict[str(command)] == "exit":
             break
