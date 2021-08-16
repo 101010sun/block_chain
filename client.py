@@ -103,7 +103,7 @@ if __name__ == "__main__":
             # build the connection with IPserver
             IPclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             IPclient.connect((IPserver_host, IPserver_port))
-            # send the msg. to IPserver
+            # 發送身分、請求
             IPclient.send(pickle.dumps(message))
             # waiting for the IPserver response
             response = IPclient.recv(4096)
@@ -113,9 +113,11 @@ if __name__ == "__main__":
                 except Exception:
                     print(f"{message} cannot be parsed")
                 target_host = parsed_message['IP']
-                target_port = parsed_message['Port_number']
-                print("[*] target_host: " + target_host)
-                print("[*] target_port: " + target_port)
+                target_port = int(parsed_message['Port_number'])
+                print("[*] target_host: ", end="")
+                print(target_host)
+                print("[*] target_port: ", end="")
+                print(target_port)
 
                 IPclient.shutdown(2)
                 IPclient.close()
@@ -126,7 +128,7 @@ if __name__ == "__main__":
             # build the connection with IPserver
             IPclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             IPclient.connect((IPserver_host, IPserver_port))
-            # send the msg. to IPserver
+            # 發送身分、請求
             IPclient.send(pickle.dumps(message))
             # waiting for the IPserver response
             response = IPclient.recv(4096)
@@ -136,7 +138,7 @@ if __name__ == "__main__":
                 except Exception:
                     print(f"{message} cannot be parsed")
                 target_host = parsed_message['IP']
-                target_port = parsed_message['Port_number']
+                target_port = int(parsed_message['Port_number'])
                 print("[*] target_host: ", end="")
                 print(target_host)
                 print("[*] target_port: ", end="")
@@ -145,6 +147,7 @@ if __name__ == "__main__":
                 IPclient.shutdown(2)
                 IPclient.close()
                 print('connection close')
+                # --與產生新區塊節點端連線
                 break
 
         elif command_dict[str(command)] == "exit":
