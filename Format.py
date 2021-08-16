@@ -5,7 +5,7 @@ class Transaction:
         self.sender = sender 
         self.receiver = receiver 
         self.amounts = amounts 
-        self.fee = fee ###還要嗎
+        self.fee = fee 
         self.message = message 
         self.community = community
 
