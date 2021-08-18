@@ -42,7 +42,7 @@ class Block:
         for transaction in self.transactions:
             transaction_str += self.transaction_to_string(transaction) #transaction_str = transaction_str + self.transaction_to_string(transaction)
         return transaction_str 
-
+    
     # 依據資料產生相對應的雜湊值
     def get_hash(self):
         s = hashlib.sha256()
@@ -69,3 +69,5 @@ class BlockChain:
 
 # Firsttrans = Transaction("father", "son",10000,15,"生活費")
 # Firsttrans.test()  #執行結果 
+test= Block('hash', 'node')
+test.get_hash()

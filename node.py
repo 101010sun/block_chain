@@ -52,34 +52,67 @@ class Node:
             # --聯繫其他區塊同步資料
             print('connect to another main node!')
 
-    # open thread
     def start_socket_server(self):
         t = threading.Thread(target=self.wait_for_socket_connection)
         t.start()
 
-    # waiting for the connection by keeping listening
     def wait_for_socket_connection(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.socket_host, self.socket_port))
             s.listen()
             while True:
-                # accept this connection
                 conn, address = s.accept()
-                # open one thread to handle the mission
-                client_handler = threading.Thread(target=self.receive_socket_message, args=(conn, address))
+                client_handler = threading.Thread(target=self.receive_socket_message, args=(s, conn, address))
                 client_handler.start()
+                client_handler.join()
+                print(f'end {address} thread')
     
-    # messages receiving from server handle
-    def receive_socket_message(self, connection ,address):
+    def finish_normal_job(self, s):
+        message = {}
+        indexclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        indexclient.connect((self.IPserver_host, self.IPserver_port))
+        indexclient.send(pickle.dumps(message))
+        
+        response = indexclient.recv(4096)
+        if response:
+            try:
+                parsed_message = pickle.loads(response)
+            except Exception:
+                print(f"{message} cannot be parsed")
+            target_host = parsed_message['IP']
+            target_port = int(parsed_message['Port_number'])
+            tmp = {'IP': target_host, 'Port_number': target_port}
+            indexclient.shutdown(2)
+            indexclient.close()
+            print('[*] ',end='')
+            print(tmp)
+            print('connection close')
+            # --聯絡此target節點，跟節點說要查詢，並取得錢包總額資料
+
+    def receive_socket_message(self, s, connection ,address):
         with connection:
             print(f'Connected by: {address}')
-            while True:
-                message = connection.recv(1024)
-                print(f"[*] Received: {message}")
-                # try:
-                #     parsed_message = pickle.loads(message)
-                # except Exception:
-                #     print(f'{message} cannot be parsed')
+            message = connection.recv(1024)
+            try:
+                parsed_message = pickle.loads(message)
+            except Exception:
+                print(f"{message} cannot be parsed")
+            print(f"[*] Received: {parsed_message}")
+            if message:
+                if parsed_message["identity"] == "user" and parsed_message["request"] == "get_balance":
+                    # --計算帳戶餘額
+                    response = {'result': '帳戶餘額結果'}
+                    connection.send(pickle.dumps(response))
+                
+                elif parsed_message["identity"] == "user" and parsed_message["request"] == "transaction":
+                    # --發布交易
+                    response = {'result': 'success'}
+                    connection.send(pickle.dumps(response))
+
+                elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
+                    # --傳送整個鏈資料
+                    response = {'result': 'success'}
+                    connection.send(pickle.dumps(response))
 
 if __name__ == "__main__":
     server = Node()

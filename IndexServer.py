@@ -82,12 +82,14 @@ class IPServer:
                 index += 1
         return final_data
 
-    # open thread to waiting for the connection
+    def print_mainnode(self):
+        node_df = pd.DataFrame(self.main_node, index=None)
+        print(node_df)
+
     def start_socket_server(self):
         t = threading.Thread(target=self.wait_for_socket_connection)
         t.start()
 
-    # keeping listening and open thread to handle receive msg.
     def wait_for_socket_connection(self):
         with socket.socket(
             socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -100,11 +102,6 @@ class IPServer:
                 client_handler.join()
                 print(f'end {address} thread')
 
-    def print_mainnode(self):
-        node_df = pd.DataFrame(self.main_node, index=None)
-        print(node_df)
-
-    # messages receiving from server handle
     def receive_socket_message(self, connection ,address):
         with connection:
             print(f'Connected by: {address}')
