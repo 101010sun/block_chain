@@ -19,8 +19,13 @@ class IPServer:
         self.socket_port = int(sys.argv[1])
         self.target_host = ''
         self.target_port = int(0)
+        self.blocking_host = ''
+        self.blocking_port = int(0)
+
+        self.index_flag = 0
+        self.main_node = self.find_all_node() # IP, Port_number, Work
+
         self.start_socket_server()
-        self.main_node = self.find_all_node() # IP, Port_number, State(0: free, 1: busy, 2: blocking)
         self.print_mainnode()
     
     # find all node data from db
@@ -29,58 +34,44 @@ class IPServer:
         cursor = self.col_main_node.find({})
         data = list([])
         for d in cursor:
-            tmp = {'IP': d['IP'], 'Port_number': int(d['port']), 'State': int(0)}
+            tmp = {'IP': d['IP'], 'Port_number': int(d['port']), 'Work': int(0)}
             data.append(tmp)
         return data
 
     # insert node data to db
-    def insert_node(self, ip, port, state):
+    def insert_node(self, ip, port):
         data = {'IP': ip, 'port': int(port)}
         self.col_main_node.insert_one(data)
-        new_node = {'IP': ip, 'Port_number': int(port), 'State': int(state)}
+        new_node = {'IP': ip, 'Port_number': int(port), 'Work': int(0)}
         self.main_node.append(new_node)
     
     # get one free main node
-    # return the index of the node's list or -1
-    def get_free_node(self):
+    # return the free ip and port, or -1
+    def get_free_node(self, work):
         final_data = None
         if len(self.main_node) != 0:
-            index = 0
-            for n in self.main_node:
-                if n['State'] == 0:
-                    final_data = index
-                    break
-                else:
-                    index += 1
-            return final_data
+            self.main_node = sorted(self.main_node, key=lambda k: k['Work'])
+            final_data = {'IP': self.main_node[0]['IP'], 'Port_number': self.main_node[0]['Port_number']}
+            if self.main_node[0]['Work'] >= 5 :
+                return None
+            else:
+                self.main_node[0]['Work'] += int(work)
+                return final_data
         elif len(self.main_node) == 0:
+            final_data = {'IP': -1, 'Port_number': -1}
             return -1
 
     # get the blocking main node
-    # return the index of the node's list
+    # return the dict of node ip and port
     def get_block_node(self):
-        final_data = None
-        index = 0
-        for n in self.main_node:
-            if n['State'] == 2:
-                final_data = index
-                break
-            else:
-                index += 1
+        final_data = {'IP': self.blocking_host, 'Port_number': self.blocking_port}
         return final_data
 
-    # get this node's index
-    # return int of the node's index
-    def get_node_index(self, ip, port):
-        final_data = None
-        index = 0
+    def set_work_done(self, ip, port, work):
         for n in self.main_node:
-            if n['IP'] == ip and n['Port_number'] == port:
-                final_data = index
+            if n['IP'] == str(ip) and n['Port_number'] == int(port):
+                n['Work'] -= int(work)
                 break
-            else:
-                index += 1
-        return final_data
 
     def print_mainnode(self):
         node_df = pd.DataFrame(self.main_node, index=None)
@@ -115,37 +106,34 @@ class IPServer:
                 if parsed_message["identity"] == "user" and parsed_message["request"] == "get_balance":
                     # get work_node loc
                     while(True):
-                        node_index = self.get_free_node()
-                        if node_index != None: break
+                        node_dict = self.get_free_node(1)
+                        if node_dict != None and node_dict['IP'] != -1: break
                     # send work_node loc to ask_node
-                    response = {"IP": self.main_node[node_index]['IP'], "Port_number": self.main_node[node_index]['Port_number']}
-                    self.main_node[node_index]['State'] = 1
+                    response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
                     connection.send(pickle.dumps(response))
                     self.print_mainnode()
 
                 elif parsed_message["identity"] == "user" and parsed_message["request"] == "transaction":
                     # get work_node loc
                     while(True):
-                        node_index = self.get_block_node()
-                        if node_index != None: break
+                        node_dict = self.get_block_node()
+                        if node_dict != None: break
                     # send work_node loc to ask_node
-                    response = {"IP": self.main_node[node_index]['IP'], "Port_number": self.main_node[node_index]['Port_number']}
+                    response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
                     connection.send(pickle.dumps(response))
                     self.print_mainnode()
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
                     # get work_node loc
-                    node_index = self.get_free_node()
                     while(True):
-                        node_index = self.get_free_node()
-                        if node_index != None: break
+                        node_dict = self.get_free_node(1)
+                        if node_dict != None: break
                     # send work_node loc to new_node
-                    if node_index != -1:
-                        response = {"IP": self.main_node[node_index]['IP'], "Port_number": self.main_node[node_index]['Port_number']}
-                        self.main_node[node_index]['State'] = 1
+                    if node_dict['IP'] != -1:
+                        response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
                         connection.send(pickle.dumps(response))
-                    elif node_index == -1:
-                        response = {"IP": -1, "Port_number": -1}
+                    elif node_dict['IP'] == -1:
+                        response = node_dict
                         connection.send(pickle.dumps(response))
                     # receive new_node loc
                     message = connection.recv(1024)
@@ -157,11 +145,12 @@ class IPServer:
                     # store the new_node's loc
                     new_ip = parsed_message['IP']
                     new_port = int(parsed_message['Port_number'])
-                    if node_index != -1: 
-                        new_state = 1
-                    elif node_index == -1:
-                        new_state = 2
-                    self.insert_node(new_ip, new_port, new_state)
+                    work = int(0)
+                    if node_dict['IP'] == -1:
+                        self.blocking_host = new_ip
+                        self.blocking_port = new_port
+                        work = 3
+                    self.insert_node(new_ip, new_port, work)
                     self.print_mainnode()
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_normal":
@@ -174,11 +163,7 @@ class IPServer:
                     print(f"[*] Received: {parsed_message}")
                     done_ip = parsed_message['IP']
                     done_port = int(parsed_message['Port_number'])
-                    done_index = self.get_node_index(done_ip, done_port)
-                    # set done_node's state to free and to the end
-                    self.main_node[done_index]['State'] = 0
-                    self.main_node.append(self.main_node[done_index])
-                    self.main_node.remove(self.main_node[done_index])
+                    self.set_work_done(done_ip, done_port, 1)
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_block":
                     # receive done_node loc
@@ -190,16 +175,15 @@ class IPServer:
                     print(f"[*] Received: {parsed_message}")
                     done_ip = parsed_message['IP']
                     done_port = int(parsed_message['Port_number'])
-                    done_index = self.get_node_index(done_ip, done_port)
-                    # set done_node's state to busy
-                    self.main_node[done_index]['State'] = 1
+                    self.set_work_done(done_ip, done_port, 2) # set done_node to free and do normal job, - 3 + 1 = - 2
                     # get next_node loc
                     while(True):
-                        next_index = self.get_free_node()
-                        if next_index != None: break
+                        next_dict = self.get_free_node(3)
+                        if next_dict != None and next_dict['IP'] != -1: break
                     # send next_node loc to done_node
-                    response = {"IP": self.main_node[next_index]['IP'], "Port_number": self.main_node[next_index]['Port_number']}
-                    self.main_node[next_index]['State'] = 2
+                    response = {"IP": next_dict['IP'], "Port_number": next_dict['Port_number']}
+                    self.blocking_host = next_dict['IP']
+                    self.blocking_port = next_dict['Port_number']
                     connection.send(pickle.dumps(response))
 
 if __name__ == "__main__":
