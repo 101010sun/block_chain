@@ -39,10 +39,10 @@ class IPServer:
         return data
 
     # insert node data to db
-    def insert_node(self, ip, port):
+    def insert_node(self, ip, port, work):
         data = {'IP': ip, 'port': int(port)}
         self.col_main_node.insert_one(data)
-        new_node = {'IP': ip, 'Port_number': int(port), 'Work': int(0)}
+        new_node = {'IP': ip, 'Port_number': int(port), 'Work': int(work)}
         self.main_node.append(new_node)
     
     # get one free main node
@@ -58,8 +58,8 @@ class IPServer:
                 self.main_node[0]['Work'] += int(work)
                 return final_data
         elif len(self.main_node) == 0:
-            final_data = {'IP': -1, 'Port_number': -1}
-            return -1
+            final_data = {'IP': '-1', 'Port_number': -1}
+            return final_data
 
     # get the blocking main node
     # return the dict of node ip and port
@@ -92,6 +92,7 @@ class IPServer:
                 client_handler.start()
                 client_handler.join()
                 print(f'end {address} thread')
+                self.print_mainnode()
 
     def receive_socket_message(self, connection ,address):
         with connection:
@@ -107,11 +108,10 @@ class IPServer:
                     # get work_node loc
                     while(True):
                         node_dict = self.get_free_node(1)
-                        if node_dict != None and node_dict['IP'] != -1: break
+                        if node_dict != None: break
                     # send work_node loc to ask_node
                     response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
                     connection.send(pickle.dumps(response))
-                    self.print_mainnode()
 
                 elif parsed_message["identity"] == "user" and parsed_message["request"] == "transaction":
                     # get work_node loc
@@ -121,7 +121,6 @@ class IPServer:
                     # send work_node loc to ask_node
                     response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
                     connection.send(pickle.dumps(response))
-                    self.print_mainnode()
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
                     # get work_node loc
@@ -129,41 +128,40 @@ class IPServer:
                         node_dict = self.get_free_node(1)
                         if node_dict != None: break
                     # send work_node loc to new_node
-                    if node_dict['IP'] != -1:
+                    if node_dict['IP'] != '-1':
                         response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
                         connection.send(pickle.dumps(response))
-                    elif node_dict['IP'] == -1:
+                    elif node_dict['IP'] == '-1':
                         response = node_dict
                         connection.send(pickle.dumps(response))
                     # receive new_node loc
                     message = connection.recv(1024)
                     try:
                         parsed_message = pickle.loads(message)
+                        print(f"[*] Received: {parsed_message}")
                     except Exception:
                         print(f"{message} cannot be parsed")
-                    print(f"[*] Received: {parsed_message}")
                     # store the new_node's loc
                     new_ip = parsed_message['IP']
                     new_port = int(parsed_message['Port_number'])
-                    work = int(0)
-                    if node_dict['IP'] == -1:
+                    work = int(1)
+                    if node_dict['IP'] == '-1':
                         self.blocking_host = new_ip
                         self.blocking_port = new_port
                         work = 3
                     self.insert_node(new_ip, new_port, work)
-                    self.print_mainnode()
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_normal":
                     # receive done_node loc
                     message = connection.recv(1024)
                     try:
                         parsed_message = pickle.loads(message)
+                        print(f"[*] Received: {parsed_message}")
+                        done_ip = parsed_message['IP']
+                        done_port = int(parsed_message['Port_number'])
+                        self.set_work_done(done_ip, done_port, 1)
                     except Exception:
                         print(f"{message} cannot be parsed")
-                    print(f"[*] Received: {parsed_message}")
-                    done_ip = parsed_message['IP']
-                    done_port = int(parsed_message['Port_number'])
-                    self.set_work_done(done_ip, done_port, 1)
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_block":
                     # receive done_node loc
@@ -179,7 +177,7 @@ class IPServer:
                     # get next_node loc
                     while(True):
                         next_dict = self.get_free_node(3)
-                        if next_dict != None and next_dict['IP'] != -1: break
+                        if next_dict != None: break
                     # send next_node loc to done_node
                     response = {"IP": next_dict['IP'], "Port_number": next_dict['Port_number']}
                     self.blocking_host = next_dict['IP']
