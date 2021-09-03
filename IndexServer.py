@@ -144,7 +144,7 @@ class IPServer:
                     # store the new_node's loc
                     new_ip = parsed_message['IP']
                     new_port = int(parsed_message['Port_number'])
-                    work = int(1)
+                    work = 5
                     if node_dict['IP'] == '-1':
                         self.blocking_host = new_ip
                         self.blocking_port = new_port
@@ -183,6 +183,18 @@ class IPServer:
                     self.blocking_host = next_dict['IP']
                     self.blocking_port = next_dict['Port_number']
                     connection.send(pickle.dumps(response))
+                
+                elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_first_syn":
+                    # receive done_node loc
+                    message = connection.recv(1024)
+                    try:
+                        parsed_message = pickle.loads(message)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(f"[*] Received: {parsed_message}")
+                    done_ip = parsed_message['IP']
+                    done_port = int(parsed_message['Port_number'])
+                    self.set_work_done(done_ip, done_port, 5)
 
 if __name__ == "__main__":
     server = IPServer()

@@ -34,6 +34,10 @@ class Node:
             con_main_syn = threading.Thread(target=self.connect_to_main_node('synchronize_chain'))
             con_main_syn.start()
             con_main_syn.join()
+            time.sleep(0.5)
+            con_index_donormal = threading.Thread(target=self.connect_to_index('done_first_syn'))
+            con_index_donormal.start()
+            con_index_donormal.join()
 
         t = threading.Thread(target=self.wait_for_socket_connection)
         t.start()
@@ -94,6 +98,12 @@ class Node:
                 con_index_donormal = threading.Thread(target=self.connect_to_index('done_normal'))
                 con_index_donormal.start()
                 con_index_donormal.join()
+
+            elif request == 'done_first_syn':
+                time.sleep(0.5)
+                # 傳送自己的節點IP、Port number
+                message = {"IP": self.socket_host, "Port_number": self.socket_port}
+                s.send(pickle.dumps(message))
 
             s.shutdown(2)
             s.close()

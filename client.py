@@ -124,7 +124,6 @@ def get_ip_transaction(IPserver_host, IPserver_port, message):
             print(f"{message} cannot be parsed")
         target_host = parsed_message['IP']
         target_port = int(parsed_message['Port_number'])
-        print("[*] target_host: ", end="")
         tmp = {'IP': target_host, 'Port_number': target_port}
         IPclient.shutdown(2)
         IPclient.close()
