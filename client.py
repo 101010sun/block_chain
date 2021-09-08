@@ -63,7 +63,6 @@ def signup():
         return dict({})
 
 # 告知索引伺服器 查詢資料請求
-# return: 目標節點位置 or {}
 def get_ip_getbalance(IPserver_host, IPserver_port, message):
     indexclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     indexclient.connect((IPserver_host, IPserver_port))
@@ -83,9 +82,10 @@ def get_ip_getbalance(IPserver_host, IPserver_port, message):
         print('[*] ',end='')
         print(tmp)
         print('connection close')
-        # --聯絡此target節點，跟節點說要查詢，並取得錢包總額資料
         return tmp
     return {}
+
+# 向目標主節點發送查詢資料請求
 def get_balance_result(target_host, target_port, message):
     nodeclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     nodeclient.connect((target_host, target_port))
@@ -103,19 +103,16 @@ def get_balance_result(target_host, target_port, message):
         print('[*] ',end='')
         print(result)
         print('connection close')
-        # --聯絡此target節點，跟節點說要查詢，並取得錢包總額資料
         return result
     return ''
 
 # 告知索引伺服器 發起交易請求
-# return: 目標節點位置 or {}
 def get_ip_transaction(IPserver_host, IPserver_port, message):
-    # build the connection with IPserver
     IPclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     IPclient.connect((IPserver_host, IPserver_port))
-    # 發送身分、請求
+    
     IPclient.send(pickle.dumps(message))
-    # waiting for the IPserver response
+    
     response = IPclient.recv(4096)
     if response:
         try:
@@ -130,7 +127,6 @@ def get_ip_transaction(IPserver_host, IPserver_port, message):
         print('[*] ',end='')
         print(tmp)
         print('connection close')
-        # --與產生新區塊節點端連線
         return tmp
     return {}
 

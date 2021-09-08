@@ -13,7 +13,7 @@ class Transaction:
 class Block: 
     def __init__(self,previous_hash,node):
         self.previous_hash = previous_hash #next block hash
-        self.hash = '' #this block hash
+        self.hash = '' # this block hash
         self.difficulty = 2 
         self.nonce = 0 #key
         self.timestamp = int(time.time()) 
@@ -50,26 +50,27 @@ class Block:
             ).encode("utf-8")
         ) #Update hash SHA256
         h = s.hexdigest() #get hash
+        self.hash = h
         return h
-        
-    # 產生創世塊
-    def create_genesis_block(self):
-        print("Create genesis block...")
-        new_block = Block('https://www.youtube.com/watch?v=QuUWPqlhuNU&ab_channel=%E5%8B%95%E7%89%A9%E5%AE%B6','IM53Q101010SUNALLEN0201')
-        new_block.hash = self.get_hash(new_block,0)
-        self.chain.append(new_block) #Add genesis to blockchain
 
 
 class BlockChain: 
     def __init__(self):
         self.difficultly = 2 
-        self.block_limitation = 32 
+        self.block_limitation = 5 
         self.chain = [] #All block store in blockchain now
         self.pending_transactions = [] #transactions pool
+        self.pre_hash = ''
+
+    # 產生創世塊
+    def create_genesis_block(self, nodeaddr):
+        print("Create genesis block...")
+        new_block = Block('https://www.youtube.com/watch?v=QuUWPqlhuNU&ab_channel=%E5%8B%95%E7%89%A9%E5%AE%B6', nodeaddr)
+        self.pre_hash = new_block.get_hash()
+        self.chain.append(new_block) #Add genesis to blockchain
 
     # 放置交易紀錄至新區塊中
     def add_transaction_to_block(self, block):
-    # Get the transaction with highest fee by block_limitation
         self.pending_transactions.sort(key=lambda x: x.fee, reverse=True)
         if len(self.pending_transactions) > self.block_limitation:
             transcation_accepted = self.pending_transactions[:self.block_limitation]
@@ -84,7 +85,7 @@ class BlockChain:
         start = time.process_time()
 
         last_block = self.chain[-1]
-        new_block = Format.Block(last_block.hash,node)
+        new_block = Block(last_block.hash,node)
 
         self.add_transaction_to_block(new_block)
         new_block.previous_hash = last_block.hash

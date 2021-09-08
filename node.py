@@ -3,18 +3,21 @@ import socket
 import threading
 import time
 import pickle
+import Blockchain
 
 class Node:
     def __init__(self):
-        # for P2P connection
         self.Index_host = '127.0.0.1'
         self.Index_port = int(sys.argv[1])
         self.socket_host = "127.0.0.1"
         self.socket_port = int(sys.argv[2])
         self.target_host = ""
         self.target_port = int(0)
+
         self.blocking = False
         self.block_count = int(0)
+
+        self.blockchain = Blockchain.BlockChain()
 
         self.done_list = list([])
 
@@ -26,10 +29,12 @@ class Node:
         con_index_syn.join()
 
         if self.target_host == '-1' and self.target_port == -1:
-            # --產生創式塊
-            # --產生新區塊工作
+            self.blockchain.create_genesis_block(self.socket_host) # 產生創式塊
             self.blocking = True
-            print('produce new block!')
+            
+            start_blocking = threading.Thread(target=self.produce_block()) # 開始產生新區塊
+            start_blocking.start()
+            start_blocking.join()
         elif self.target_host != '-1' and self.target_port != -1:
             con_main_syn = threading.Thread(target=self.connect_to_main_node('synchronize_chain'))
             con_main_syn.start()
@@ -177,6 +182,12 @@ class Node:
                     self.block_count = 0
                     self.blocking = True
                     # --開始產生新區塊工作
+
+    def produce_block(self):
+        if self.blocking:
+            self.blockchain.node_block(self.Index_host)
+            self.block_count += 1
+            # --傳送這個block資料到所有主節點並進行驗證
 
 if __name__ == "__main__":
     server = Node()
