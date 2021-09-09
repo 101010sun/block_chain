@@ -19,8 +19,6 @@ class Node:
 
         self.blockchain = Blockchain.BlockChain()
 
-        self.done_list = list([])
-
         self.start_socket_server()
 
     def start_socket_server(self):
@@ -31,7 +29,6 @@ class Node:
         if self.target_host == '-1' and self.target_port == -1:
             self.blockchain.create_genesis_block(self.socket_host) # 產生創式塊
             self.blocking = True
-            
             start_blocking = threading.Thread(target=self.produce_block()) # 開始產生新區塊
             start_blocking.start()
             start_blocking.join()
@@ -99,7 +96,6 @@ class Node:
                 con_node_doblock.start()
                 con_node_doblock.join()
 
-                self.blocking = False
                 con_index_donormal = threading.Thread(target=self.connect_to_index('done_normal'))
                 con_index_donormal.start()
                 con_index_donormal.join()
@@ -119,14 +115,43 @@ class Node:
             # 發送身分、請求
             message = {"identity": "node", "request": request}
             s.send(pickle.dumps(message))
-            # waiting for the response
-            response = s.recv(4096)
-            if response:
-                try:
-                    parsed_message = pickle.loads(response)
-                except Exception:
-                    print(f"{message} cannot be parsed")
-                print(parsed_message)
+
+            if request == 'synchronize_chain':
+                while(True):
+                    response = s.recv(4096)
+                    if response:
+                        try:
+                            parsed_message = pickle.loads(response)
+                            print(parsed_message)
+                        except Exception:
+                            print(f"{message} cannot be parsed")
+                        
+                    if parsed_message['result'] == 'finish':
+                        break
+                    elif parsed_message['result'] == 'not_yet':
+                        a_block = Blockchain.Block(parsed_message['previous_hash'], parsed_message['node'])
+                        a_block.add_other_info(parsed_message['hash'], parsed_message['nonce'], parsed_message['timestamp'])
+                        for i in range(0, parsed_message['transactions_len']):
+                            response = s.recv(4096)
+                            if response:
+                                try:
+                                    parsed_message = pickle.loads(response)
+                                    print(parsed_message)
+                                except Exception:
+                                    print(f"{message} cannot be parsed")
+                            a_transaction = Blockchain.Transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
+                            a_block.add_transaction(a_transaction)
+                        self.blockchain.chain.append(a_block)
+            
+            else:
+                # waiting for the response
+                response = s.recv(4096)
+                if response:
+                    try:
+                        parsed_message = pickle.loads(response)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(parsed_message)
             
             s.shutdown(2)
             s.close()
@@ -140,14 +165,6 @@ class Node:
                 client_handler = threading.Thread(target=self.receive_socket_message, args=(s, conn, address))
                 client_handler.start()
                 client_handler.join()
-                while True:
-                    if len(self.done_list) != 0:
-                        done = self.done_list.pop(0)
-                        con_index_done = threading.Thread(target=self.connect_to_index(done))
-                        con_index_done.start()
-                        con_index_done.join()
-                    else:
-                        break
 
     def receive_socket_message(self, s, connection ,address):
         with connection:
@@ -160,34 +177,73 @@ class Node:
             print(f"[*] Received: {parsed_message}")
             if message:
                 if parsed_message["identity"] == "user" and parsed_message["request"] == "get_balance":
-                    # --計算帳戶餘額
-                    response = {'result': '帳戶餘額結果'}
+                    message = connection.recv(1024)
+                    try:
+                        parsed_message = pickle.loads(message)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(f"[*] Received: {parsed_message}")
+
+                    balance = self.blockchain.get_balance(parsed_message['account']) # 計算帳戶餘額
+                    response = {'result': balance}
                     connection.send(pickle.dumps(response))
 
-                    self.done_list.append('done_normal')
+                    con_index_done = threading.Thread(target=self.connect_to_index('done_normal'))
+                    con_index_done.start()
+                    con_index_done.join()
                 
                 elif parsed_message["identity"] == "user" and parsed_message["request"] == "transaction":
-                    # --發布交易
-                    response = {'result': 'success'}
+                    message = connection.recv(1024)
+                    try:
+                        parsed_message = pickle.loads(message)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(f"[*] Received: {parsed_message}")
+                    if self.block_count:
+                        transaction = Blockchain.Transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
+                        self.blockchain.add_transaction_to_pool(transaction)
+                        response = {'result': 'success'}
+                    else:
+                        response = {'result': 'not me'}
                     connection.send(pickle.dumps(response))
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
-                    # --傳送整個鏈資料
-                    response = {'result': 'success'}
+                    if self.blockchain.chain != []:
+                        for b in self.blockchain.chain: # 傳送整個鏈資料
+                            a_block_dict = b.pack_block_to_dict()
+                            a_block_dict['result'] = 'not_yet'
+                            connection.send(pickle.dumps(a_block_dict))
+                            time.sleep(0.5)
+                            for t in b.transactions:
+                                a_transaction_dict = t.pack_transaction_to_dict()
+                                connection.send(pickle.dumps(a_transaction_dict))
+                                time.sleep(0.5)
+                                
+                    response = {'result': 'finish'}
                     connection.send(pickle.dumps(response))
 
-                    self.done_list.append('done_normal')
+                    con_index_done = threading.Thread(target=self.connect_to_index('done_normal'))
+                    con_index_done.start()
+                    con_index_done.join()
                 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "you_block":
                     self.block_count = 0
                     self.blocking = True
-                    # --開始產生新區塊工作
+                    start_blocking = threading.Thread(target=self.produce_block()) # 開始產生新區塊
+                    start_blocking.start()
+                    start_blocking.join()
 
     def produce_block(self):
-        if self.blocking:
+        while(self.blocking):
             self.blockchain.node_block(self.Index_host)
-            self.block_count += 1
             # --傳送這個block資料到所有主節點並進行驗證
+            self.block_count += 1
+            if self.block_count == 5:
+                self.blocking = False
+                self.block_count = 0
+                con_index_doneb = threading.Thread(target=self.connect_to_index('done_block'))
+                con_index_doneb.start()
+                con_index_doneb.join()
 
 if __name__ == "__main__":
     server = Node()

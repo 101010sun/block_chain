@@ -7,6 +7,7 @@ import pickle
 import stdiomask
 import Wallet
 import Database
+import Blockchain
 
 def handle_receive(client):
     transfer_str('user, 2')
@@ -90,6 +91,10 @@ def get_balance_result(target_host, target_port, message):
     nodeclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     nodeclient.connect((target_host, target_port))
     nodeclient.send(pickle.dumps(message))
+    # --取此帳號的錢包地址
+    account_adr = 'testaccoutadr'
+    message = {'account': account_adr}
+    nodeclient.send(pickle.dumps(message))
 
     response = nodeclient.recv(4096)
     if response:
@@ -108,9 +113,19 @@ def get_balance_result(target_host, target_port, message):
 
 # 告知索引伺服器 發起交易請求
 def get_ip_transaction(IPserver_host, IPserver_port, message):
+    # --取此帳號的錢包地址
+    sender = 'testaccoutadr'
+    receiver = input('收方錢包地址: ')
+    amounts = input('交易總額: ')
+    msg = input('交易內容: ')
+    community = input('社區幣: ')
+    
     IPclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     IPclient.connect((IPserver_host, IPserver_port))
     
+    IPclient.send(pickle.dumps(message))
+    time.sleep(0.5)
+    message = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community}
     IPclient.send(pickle.dumps(message))
     
     response = IPclient.recv(4096)

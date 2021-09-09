@@ -2,13 +2,24 @@ import time
 import hashlib
 
 class Transaction: 
-    def __init__(self,sender,receiver,amounts,fee,message,community):
+    def __init__(self,sender,receiver,amounts,message,community):
         self.sender = sender 
         self.receiver = receiver 
         self.amounts = amounts 
-        self.fee = fee 
+        self.fee = amounts * 0.1 
         self.message = message 
         self.community = community
+    
+    # 打包交易資訊成一dict
+    def pack_transaction_to_dict(self):
+        tmp_dict = {
+            'sender': self.sender,
+            'receiver': self.receiver,
+            'amounts': self.amounts,
+            'msg': self.message,
+            'community': self.community
+        }
+        return tmp_dict
 
 class Block: 
     def __init__(self,previous_hash,node):
@@ -19,6 +30,28 @@ class Block:
         self.timestamp = int(time.time()) 
         self.transactions = [] 
         self.node = node
+
+    # 添加(除建構子和交易外的)資訊填入
+    def add_other_info(self, hash, nonce, timestamp):
+        self.hash = hash
+        self.nonce = nonce
+        self.timestamp = timestamp
+
+    # 添加交易資訊填入
+    def add_transaction(self, transaction):
+        self.transactions.append(transaction)
+
+    # 打包區塊資訊成一dict(除交易)
+    def pack_block_to_dict(self):
+        tmp_dict = {
+            'previous_hash': self.previous_hash,
+            'hash': self.hash,
+            'nonce': self.nonce,
+            'timestamp': self.timestamp,
+            'transactions_len': len(self.transactions),
+            'node': self.node
+            }
+        return tmp_dict
 
     # 將交易明細轉換成字串(dict)
     def transaction_to_string(self, transaction): #transaction to string
@@ -70,7 +103,7 @@ class BlockChain:
         self.chain.append(new_block) #Add genesis to blockchain
 
     # 放置交易紀錄至新區塊中
-    def add_transaction_to_block(self, block):
+    def add_transactions_to_block(self, block):
         self.pending_transactions.sort(key=lambda x: x.fee, reverse=True)
         if len(self.pending_transactions) > self.block_limitation:
             transcation_accepted = self.pending_transactions[:self.block_limitation]
@@ -79,6 +112,10 @@ class BlockChain:
             transcation_accepted = self.pending_transactions
             self.pending_transactions = []
         block.transactions = transcation_accepted
+
+    # 放置交易明細放入交易池裡
+    def add_transaction_to_pool(self, transaction):
+        self.pending_transactions.append(transaction)
 
     # 挖掘新區塊
     def node_block(self, node):
@@ -99,6 +136,7 @@ class BlockChain:
         print(f"Hash found: {new_block.hash} @ difficulty {self.difficulty}, time cost: {time_consumed}s")
         self.chain.append(new_block)
     
+    # 取得帳戶餘額
     def get_balance(self, account): 
         balance = 0
         for block in self.chain:
