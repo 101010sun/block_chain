@@ -86,7 +86,6 @@ class Block:
         self.hash = h
         return h
 
-
 class BlockChain: 
     def __init__(self):
         self.difficultly = 2 
@@ -124,7 +123,7 @@ class BlockChain:
         last_block = self.chain[-1]
         new_block = Block(last_block.hash,node)
 
-        self.add_transaction_to_block(new_block)
+        self.add_transactions_to_block(new_block)
         new_block.previous_hash = last_block.hash
         new_block.hash = self.get_hash(new_block, new_block.nonce)
 
@@ -168,7 +167,3 @@ class BlockChain:
             previous_hash = block.hash
         print("Hash correct!")
         return True
-
- 
-#test= Block('hash', 'node')
-#test.get_hash()
