@@ -9,11 +9,11 @@ from bson.objectid import ObjectId
 
 class IPServer:
     def __init__(self):
-        # for DB connection
-        self.conn = MongoClient()
-        self.db = self.conn.blackchainIP
-        self.col_main_node = self.db.main_node
-        self.col_main_node.stats
+        # # for DB connection
+        # self.conn = MongoClient()
+        # self.db = self.conn.blackchainIP
+        # self.col_main_node = self.db.main_node
+        # self.col_main_node.stats
         # for P2P connection
         self.socket_host = "127.0.0.1"
         self.socket_port = int(sys.argv[1])
@@ -23,25 +23,26 @@ class IPServer:
         self.blocking_port = int(0)
 
         self.index_flag = 0
-        self.main_node = self.find_all_node() # IP, Port_number, Work
+        self.main_node = list([])
+        # self.main_node = self.find_all_node() # IP, Port_number, Work
 
         self.start_socket_server()
         self.print_mainnode()
     
     # find all node data from db
     # return list of dict of the data
-    def find_all_node(self):
-        cursor = self.col_main_node.find({})
-        data = list([])
-        for d in cursor:
-            tmp = {'IP': d['IP'], 'Port_number': int(d['port']), 'Work': int(0)}
-            data.append(tmp)
-        return data
+    # def find_all_node(self):
+    #     cursor = self.col_main_node.find({})
+    #     data = list([])
+    #     for d in cursor:
+    #         tmp = {'IP': d['IP'], 'Port_number': int(d['port']), 'Work': int(0)}
+    #         data.append(tmp)
+    #     return data
 
     # insert node data to db
     def insert_node(self, ip, port, work):
-        data = {'IP': ip, 'port': int(port)}
-        self.col_main_node.insert_one(data)
+        # data = {'IP': ip, 'port': int(port)}
+        # self.col_main_node.insert_one(data)
         new_node = {'IP': ip, 'Port_number': int(port), 'Work': int(work)}
         self.main_node.append(new_node)
     
