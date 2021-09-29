@@ -92,7 +92,7 @@ class Block:
 
 class BlockChain: 
     def __init__(self):
-        self.difficultly = 2 
+        self.difficultly = 10 
         self.block_limitation = 5 
         self.chain = [] #All block store in blockchain now
         self.pending_transactions = [] #transactions pool
@@ -146,6 +146,7 @@ class BlockChain:
         time_consumed = round(time.process_time() - start, 5)
         print(f"Hash found: {new_block.hash} @ difficulty {new_block.difficulty}, time cost: {time_consumed}s")
         self.chain.append(new_block)
+        print(self.chain)
     
     # 取得帳戶餘額
     def get_balance(self, account): 
@@ -278,10 +279,10 @@ class BlockChain:
         while(True):        
             block = Block(self.pre_hash, 'me')    
             # Step1: initialize a transaction
-            transaction = self.initialize_transaction(address, 'test123', 1, 1, 'Test')
+            transaction = self.initialize_transaction(address, 'test123', 0, 0, 'Test')
             if transaction:
                 # Step2: Sign your transaction
-                signature = block.sign_transaction(transaction, private)
+                signature = self.sign_transaction(transaction, private)
                 # Step3: Send it to blockchain
                 block.add_transaction_to_chain(transaction, signature)
             self.node_block(address)
