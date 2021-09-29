@@ -1,5 +1,7 @@
 import time
 import hashlib
+import rsa
+import cryptocode
 
 class Transaction: 
     def __init__(self,sender,receiver,amounts,message,community):
@@ -85,6 +87,8 @@ class Block:
         h = s.hexdigest() #get hash
         self.hash = h
         return h
+    
+    
 
 class BlockChain: 
     def __init__(self):
@@ -93,6 +97,14 @@ class BlockChain:
         self.chain = [] #All block store in blockchain now
         self.pending_transactions = [] #transactions pool
         self.pre_hash = ''
+
+    #初始化一筆交易
+    def initialize_transaction(self, sender, receiver, amount, fee, message):
+        if self.get_balance(sender) < amount + fee:
+            print("Balance not enough!")
+            return False
+        new_transaction = Transaction(sender, receiver, amount, fee, message)
+        return new_transaction
 
     # 產生創世塊
     def create_genesis_block(self, nodeaddr):
@@ -125,27 +137,22 @@ class BlockChain:
 
         self.add_transactions_to_block(new_block)
         new_block.previous_hash = last_block.hash
-        new_block.hash = self.get_hash(new_block, new_block.nonce)
+        new_block.hash = new_block.get_hash()
 
-        while new_block.hash[0: self.difficulty] != '0' * self.difficulty:
+        while new_block.hash[0: new_block.difficulty] != '0' * new_block.difficulty:
             new_block.nonce += 1
-            new_block.hash = self.get_hash(new_block, new_block.nonce)
+            new_block.hash = new_block.get_hash()
 
         time_consumed = round(time.process_time() - start, 5)
-        print(f"Hash found: {new_block.hash} @ difficulty {self.difficulty}, time cost: {time_consumed}s")
+        print(f"Hash found: {new_block.hash} @ difficulty {new_block.difficulty}, time cost: {time_consumed}s")
         self.chain.append(new_block)
     
     # 取得帳戶餘額
     def get_balance(self, account): 
         balance = 0
         for block in self.chain:
-            # Check miner reward
-            node = False
-            if block.node == account:
-                node = True
-                balance += block.miner_rewards
             for transaction in block.transactions:
-                if node:
+                if block.node == account:
                     balance += transaction.fee
                 if transaction.sender == account:
                     balance -= transaction.amounts
@@ -167,3 +174,117 @@ class BlockChain:
             previous_hash = block.hash
         print("Hash correct!")
         return True
+
+
+
+
+    #簽署交易
+    def sign_transaction(self, transaction, private_key):
+        private_key_pkcs = rsa.PrivateKey.load_pkcs1(private_key)
+        transaction_str = self.transaction_to_string(transaction)
+        signature = rsa.sign(transaction_str.encode('utf-8'), private_key_pkcs, 'SHA-256')
+        return signature
+
+    #送上鏈
+    def add_transaction_to_chain(self, transaction, signature):
+        public_key = '-----BEGIN RSA PUBLIC KEY-----\n'
+        public_key += transaction.sender
+        public_key += '\n-----END RSA PUBLIC KEY-----\n'
+        public_key_pkcs = rsa.PublicKey.load_pkcs1(public_key.encode('utf-8'))
+        transaction_str = self.transaction_to_string(transaction)
+        if transaction.fee + transaction.amounts > self.get_balance(transaction.sender):
+            print("Balance not enough!")
+            return False
+        try:
+            # 驗證發送者
+            rsa.verify(transaction_str.encode('utf-8'), signature, public_key_pkcs)
+            print("Authorized successfully!")
+            self.pending_transactions.append(transaction)
+            return True
+        except Exception:
+            print("RSA Verified wrong!")
+
+      ###Wallet      
+    # 產生錢包地址
+    # return: 錢包地址、?私鑰
+    def generate_address(self):
+        public, private = rsa.newkeys(512) #rsa 
+        #PublicKey(8110652037018951423415384068343669562112781192066917099227440355062887030082561641925872544251324619419460659259927466333657527066898085681936273858467987, 65537)
+        #PrivatKey
+        #public key
+        public_key = public.save_pkcs1()
+        with open('public.pem','wb')as f:
+            f.write(public_key)
+        #private key
+        private_key = private.save_pkcs1()
+        with open('private.pem','wb')as f:
+            f.write(private_key)
+        #print(str(public_key))
+        
+        #過濾地址
+        address = str(public_key).replace('\\n','')
+        address = address.replace("b'-----BEGIN RSA PUBLIC KEY-----", '')
+        address = address.replace("-----END RSA PUBLIC KEY-----'", '')
+        address = address.replace(' ', '')
+        #過濾私鑰
+        private_key = str(private_key).replace('\\n','') 
+        private_key = private_key.replace("b'-----BEGIN RSA PRIVATE KEY-----", '')
+        private_key = private_key.replace("-----END RSA PRIVATE KEY-----'", '')
+        private_key = private_key.replace(' ', '')
+        return address, private_key
+
+    # 加密明文密碼
+    # return: 加密密碼
+    def encryption_password(self,password, e_id_card):
+        s = hashlib.sha256()
+        s.update(
+            (
+            str(password)
+            +str(e_id_card)
+            ).encode("utf-8")
+        ) #Update hash SHA256
+        e_password = s.hexdigest() #get hash
+        return e_password
+
+    # 加密身分證字號
+    # return: 加密身分證字號
+    def encryption_id_card(self,id_card):
+        s = hashlib.sha256()
+        s.update(
+            (
+            str(id_card)
+            ).encode("utf-8")
+        ) #Update hash SHA256
+        e_id_card = s.hexdigest() #get hash
+        return e_id_card
+
+    # 加密私鑰
+    def encryption_privatekey(self,private_key, password):
+        e_private_key = cryptocode.encrypt(str(private_key),str(password))
+        return e_private_key
+
+    # 解密私鑰
+    # return: 私鑰
+    def decryption_privatekey(self,e_private_key, password):
+        private_key = cryptocode.decrypt(str(e_private_key),str(password))
+        return private_key
+
+
+    #測試    
+    def start(self):
+        address, private = self.generate_address()
+        self.create_genesis_block('me')
+        
+        while(True):        
+            block = Block(self.pre_hash, 'me')    
+            # Step1: initialize a transaction
+            transaction = self.initialize_transaction(address, 'test123', 1, 1, 'Test')
+            if transaction:
+                # Step2: Sign your transaction
+                signature = block.sign_transaction(transaction, private)
+                # Step3: Send it to blockchain
+                block.add_transaction_to_chain(transaction, signature)
+            self.node_block(address)
+            print(self.get_balance(address))
+BC1 = BlockChain()
+BC1.start()
