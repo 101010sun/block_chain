@@ -200,8 +200,10 @@ class Node:
                         print(f"{message} cannot be parsed")
                     print(f"[*] Received: {parsed_message}")
                     if self.block_count:
-                        transaction = Blockchain.Transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
-                        self.blockchain.add_transaction_to_pool(transaction)
+                        transaction = self.blockchain.initialize_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
+                        private = 'template' #-- 取sender私鑰
+                        signature = self.blockchain.sign_transaction(transaction, private) # 簽署交易
+                        self.blockchain.add_transaction_to_pool(transaction, signature) # 將交易資料放入交易池
                         response = {'result': 'success'}
                     else:
                         response = {'result': 'not me'}

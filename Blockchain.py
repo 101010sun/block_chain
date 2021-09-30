@@ -27,7 +27,7 @@ class Block:
     def __init__(self,previous_hash,node):
         self.previous_hash = previous_hash #next block hash
         self.hash = '' # this block hash
-        self.difficulty = 2 
+        self.difficulty = 4
         self.nonce = 0 #key
         self.timestamp = int(time.time()) 
         self.transactions = [] 
@@ -92,7 +92,7 @@ class Block:
 
 class BlockChain: 
     def __init__(self):
-        self.difficultly = 10 
+        self.difficultly = 10
         self.block_limitation = 5 
         self.chain = [] #All block store in blockchain now
         self.pending_transactions = [] #transactions pool
@@ -123,10 +123,6 @@ class BlockChain:
             transcation_accepted = self.pending_transactions
             self.pending_transactions = []
         block.transactions = transcation_accepted
-
-    # 放置交易明細放入交易池裡
-    def add_transaction_to_pool(self, transaction):
-        self.pending_transactions.append(transaction)
 
     # 挖掘新區塊
     def node_block(self, node):
@@ -176,18 +172,30 @@ class BlockChain:
         print("Hash correct!")
         return True
 
-
-
+    # 將交易明細轉換成字串(dict)
+    def transaction_to_string(self, transaction): #transaction to string
+        transaction_dict = {
+            'sender': str(transaction.sender),
+            'receiver': str(transaction.sender),
+            'amounts': transaction.amounts,
+            'fee': transaction.fee,
+            'message': transaction.message
+        }
+        return str(transaction_dict)
 
     #簽署交易
     def sign_transaction(self, transaction, private_key):
-        private_key_pkcs = rsa.PrivateKey.load_pkcs1(private_key)
+        pem_prefix = '-----BEGIN RSA PRIVATE KEY-----\n'
+        pem_suffix = '\n-----END RSA PRIVATE KEY-----'
+        key = private_key
+        key = '{}{}{}'.format(pem_prefix, key, pem_suffix)
+        private_key_pkcs = rsa.PrivateKey.load_pkcs1(key)
         transaction_str = self.transaction_to_string(transaction)
         signature = rsa.sign(transaction_str.encode('utf-8'), private_key_pkcs, 'SHA-256')
         return signature
 
     #送上鏈
-    def add_transaction_to_chain(self, transaction, signature):
+    def add_transaction_to_pool(self, transaction, signature):
         public_key = '-----BEGIN RSA PUBLIC KEY-----\n'
         public_key += transaction.sender
         public_key += '\n-----END RSA PUBLIC KEY-----\n'
@@ -276,16 +284,17 @@ class BlockChain:
         address, private = self.generate_address()
         self.create_genesis_block('me')
         
-        while(True):        
-            block = Block(self.pre_hash, 'me')    
+        while(True):           
             # Step1: initialize a transaction
             transaction = self.initialize_transaction(address, 'test123', 0, 0, 'Test')
             if transaction:
                 # Step2: Sign your transaction
                 signature = self.sign_transaction(transaction, private)
                 # Step3: Send it to blockchain
-                block.add_transaction_to_chain(transaction, signature)
+                self.add_transaction_to_pool(transaction, signature)
             self.node_block(address)
             print(self.get_balance(address))
+            
+
 BC1 = BlockChain()
 BC1.start()
