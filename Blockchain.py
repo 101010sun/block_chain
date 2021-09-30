@@ -27,7 +27,7 @@ class Block:
     def __init__(self,previous_hash,node):
         self.previous_hash = previous_hash #next block hash
         self.hash = '' # this block hash
-        self.difficulty = 4
+        self.difficulty = 6
         self.nonce = 0 #key
         self.timestamp = int(time.time()) 
         self.transactions = [] 
@@ -92,7 +92,7 @@ class Block:
 
 class BlockChain: 
     def __init__(self):
-        self.difficultly = 10
+        self.difficultly = 6
         self.block_limitation = 5 
         self.chain = [] #All block store in blockchain now
         self.pending_transactions = [] #transactions pool
@@ -296,5 +296,5 @@ class BlockChain:
             print(self.get_balance(address))
             
 
-BC1 = BlockChain()
-BC1.start()
+# BC1 = BlockChain()
+# BC1.start()

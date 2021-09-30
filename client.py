@@ -112,7 +112,7 @@ def get_balance_result(target_host, target_port, message):
     return ''
 
 # 告知索引伺服器 發起交易請求
-def get_ip_transaction(IPserver_host, IPserver_port, message):
+def get_ip_transaction(IPserver_host, IPserver_port, message, password):
     # --取此帳號的錢包地址
     sender = 'testaccoutadr'
     receiver = input('收方錢包地址: ')
@@ -125,7 +125,7 @@ def get_ip_transaction(IPserver_host, IPserver_port, message):
     
     IPclient.send(pickle.dumps(message))
     time.sleep(0.5)
-    message = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community}
+    message = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community, 'password': password}
     IPclient.send(pickle.dumps(message))
     
     response = IPclient.recv(4096)
@@ -183,7 +183,7 @@ if __name__ == "__main__":
             else: print('[*] Get Balance Node Fail!')
         
         elif command_dict[str(command)] == "transaction":
-            rec = get_ip_transaction(IPserver_host, IPserver_port, message)
+            rec = get_ip_transaction(IPserver_host, IPserver_port, message, user_info['密碼'])
             if rec != {}:
                 target_host = rec['IP']
                 target_port = rec['Port_number']

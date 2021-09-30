@@ -217,4 +217,4 @@ def download_photo(name):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-print(Taken_privatekey('rgrwgN','GFGwfwfe3'))
+# print(Taken_privatekey('rgrwgN','GFGwfwfe3'))
