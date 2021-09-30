@@ -176,6 +176,17 @@ def Taken_password(account):
   else:
     return None
 
+# 取此帳號的私鑰
+def Taken_privatekey(account,password):
+  projectionFields = ['private_key']
+  cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
+  data = [d for d in cursor]
+  e_private_key = data[0]['private_key']
+  privatekey = Wallet.decryption_privatekey(e_private_key, password)
+  if data != list([]):
+    return privatekey
+  else:
+    return None
 
 #資料庫_圖片 name = 'Dog02.jpg'
 
@@ -205,3 +216,5 @@ def download_photo(name):
     cv2.imshow('My Profile', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+print(Taken_privatekey('rgrwgN','GFGwfwfe3'))
