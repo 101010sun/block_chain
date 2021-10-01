@@ -23,22 +23,21 @@ class Node:
         self.start_socket_server()
 
     def start_socket_server(self):
-        con_index_syn = threading.Thread(target=self.connect_to_index('synchronize_chain'))
+        con_index_syn = threading.Thread(target=self.connect_to_index, args=('synchronize_chain',))
         con_index_syn.start()
         con_index_syn.join()
 
         if self.target_host == '-1' and self.target_port == -1:
             self.blockchain.create_genesis_block(self.socket_host) # 產生創式塊
             self.blocking = True
-            start_blocking = threading.Thread(target=self.produce_block()) # 開始產生新區塊
-            start_blocking.start()
-            start_blocking.join()
+            start_blocking = threading.Thread(target=self.produce_block) # 開始產生新區塊
+            start_blocking.start() # 執行該子執行緒
         elif self.target_host != '-1' and self.target_port != -1:
-            con_main_syn = threading.Thread(target=self.connect_to_main_node('synchronize_chain'))
-            con_main_syn.start()
-            con_main_syn.join()
+            con_main_syn = threading.Thread(target=self.connect_to_main_node, args=("synchronize_chain",))
+            con_main_syn.start() # 執行該子執行緒
+            con_main_syn.join() # 等待這個子執行緒結束
             time.sleep(0.5)
-            con_index_donormal = threading.Thread(target=self.connect_to_index('done_first_syn'))
+            con_index_donormal = threading.Thread(target=self.connect_to_index, args=("done_first_syn",))
             con_index_donormal.start()
             con_index_donormal.join()
 
@@ -93,11 +92,11 @@ class Node:
                     print(self.target_host)
                     print("[*] target_port: ", end="")
                     print(self.target_port)
-                con_node_doblock = threading.Thread(target=self.connect_to_main_node('you_block'))
+                con_node_doblock = threading.Thread(target=self.connect_to_main_node, args=('you_block',))
                 con_node_doblock.start()
                 con_node_doblock.join()
 
-                con_index_donormal = threading.Thread(target=self.connect_to_index('done_normal'))
+                con_index_donormal = threading.Thread(target=self.connect_to_index, args=('done_normal',))
                 con_index_donormal.start()
                 con_index_donormal.join()
 
@@ -112,6 +111,8 @@ class Node:
 
     def connect_to_main_node(self, request):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            print(self.target_host, type(self.target_host))
+            print(self.target_port, type(self.target_port))
             s.connect((self.target_host, self.target_port))
             # 發送身分、請求
             message = {"identity": "node", "request": request}
@@ -165,7 +166,6 @@ class Node:
                 conn, address = s.accept()
                 client_handler = threading.Thread(target=self.receive_socket_message, args=(s, conn, address))
                 client_handler.start()
-                client_handler.join()
 
     def receive_socket_message(self, s, connection ,address):
         with connection:
@@ -189,9 +189,8 @@ class Node:
                     response = {'result': balance}
                     connection.send(pickle.dumps(response))
 
-                    con_index_done = threading.Thread(target=self.connect_to_index('done_normal'))
+                    con_index_done = threading.Thread(target=self.connect_to_index, args=('done_normal',))
                     con_index_done.start()
-                    con_index_done.join()
                 
                 elif parsed_message["identity"] == "user" and parsed_message["request"] == "transaction":
                     message = connection.recv(1024)
@@ -225,16 +224,14 @@ class Node:
                     response = {'result': 'finish'}
                     connection.send(pickle.dumps(response))
 
-                    con_index_done = threading.Thread(target=self.connect_to_index('done_normal'))
+                    con_index_done = threading.Thread(target=self.connect_to_index, args=('done_normal',))
                     con_index_done.start()
-                    con_index_done.join()
                 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "you_block":
                     self.block_count = 0
                     self.blocking = True
-                    start_blocking = threading.Thread(target=self.produce_block()) # 開始產生新區塊
+                    start_blocking = threading.Thread(target=self.produce_block) # 開始產生新區塊
                     start_blocking.start()
-                    start_blocking.join()
 
     def produce_block(self):
         while(self.blocking):
@@ -244,9 +241,8 @@ class Node:
             if self.block_count == 5:
                 self.blocking = False
                 self.block_count = 0
-                con_index_doneb = threading.Thread(target=self.connect_to_index('done_block'))
+                con_index_doneb = threading.Thread(target=self.connect_to_index, args=('done_block',))
                 con_index_doneb.start()
-                con_index_doneb.join()
 
 if __name__ == "__main__":
     server = Node()
