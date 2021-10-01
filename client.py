@@ -1,13 +1,11 @@
 from getpass import getpass
 import sys
 import socket
-import threading
 import time
 import pickle
 import stdiomask
 import Wallet
 import Database
-import Blockchain
 
 def handle_receive(client):
     transfer_str('user, 2')
