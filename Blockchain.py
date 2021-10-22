@@ -27,7 +27,7 @@ class Block:
     def __init__(self,previous_hash,node):
         self.previous_hash = previous_hash #next block hash
         self.hash = '' # this block hash
-        self.difficulty = 6
+        self.difficulty = 5
         self.nonce = 0 #key
         self.timestamp = int(time.time()) 
         self.transactions = [] 
@@ -92,8 +92,8 @@ class Block:
 
 class BlockChain: 
     def __init__(self):
-        self.difficultly = 6
-        self.block_limitation = 5 
+        self.difficultly = 5
+        self.block_limitation = 10 
         self.chain = [] #All block store in blockchain now
         self.pending_transactions = [] #transactions pool
         self.pre_hash = ''
@@ -143,6 +143,7 @@ class BlockChain:
         print(f"Hash found: {new_block.hash} @ difficulty {new_block.difficulty}, time cost: {time_consumed}s")
         self.chain.append(new_block)
         print(self.chain)
+        return new_block
     
     # 取得帳戶餘額
     def get_balance(self, account): 
@@ -194,7 +195,7 @@ class BlockChain:
         signature = rsa.sign(transaction_str.encode('utf-8'), private_key_pkcs, 'SHA-256')
         return signature
 
-    #送上鏈
+    # 送上鏈
     def add_transaction_to_pool(self, transaction, signature):
         public_key = '-----BEGIN RSA PUBLIC KEY-----\n'
         public_key += transaction.sender

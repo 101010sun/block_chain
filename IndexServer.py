@@ -3,6 +3,7 @@ import socket
 import threading
 import time
 import pickle
+from typing import final
 import pandas as pd
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -196,6 +197,16 @@ class IPServer:
                     done_ip = parsed_message['IP']
                     done_port = int(parsed_message['Port_number'])
                     self.set_work_done(done_ip, done_port, 5)
+
+                elif parsed_message["identity"] == "node" and parsed_message["request"] == "broadcast_list":
+                    response = {'length': len(self.main_node)}
+                    connection.send(pickle.dumps(response)) # 傳送長度
+
+                    for node in self.main_node: # 傳送每一節點資料
+                        time.sleep(0.5)
+                        response = {"IP": node['IP'], "Port_number": node['Port_number']}
+                        connection.send(pickle.dumps(response))
+
 
 if __name__ == "__main__":
     server = IPServer()
