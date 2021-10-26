@@ -8,7 +8,7 @@ class Transaction:
         self.sender = sender 
         self.receiver = receiver 
         self.amounts = amounts 
-        self.fee = amounts * 0.1 
+        self.fee = amounts * 0.01 
         self.message = message 
         self.community = community
     
@@ -148,8 +148,10 @@ class BlockChain:
     # 取得帳戶餘額
     def get_balance(self, account): 
         balance = 0
+        result = dict({})
         for block in self.chain:
             for transaction in block.transactions:
+                result[transaction.community] -= transaction.amount
                 if block.node == account:
                     balance += transaction.fee
                 if transaction.sender == account:
@@ -157,7 +159,7 @@ class BlockChain:
                     balance -= transaction.fee
                 elif transaction.receiver == account:
                     balance += transaction.amounts
-        return balance
+        return result
 
     # 確認雜湊值是否正確
     def verify_blockchain(self):
