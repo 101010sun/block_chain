@@ -97,6 +97,7 @@ class BlockChain:
         self.chain = [] #All block store in blockchain now
         self.pending_transactions = [] #transactions pool
         self.pre_hash = ''
+        self.exchange_record = []
 
     #初始化一筆交易
     def initialize_transaction(self, sender, receiver, amount, fee, message):
