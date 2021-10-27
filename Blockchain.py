@@ -23,6 +23,24 @@ class Transaction:
         }
         return tmp_dict
 
+class Createrecord: 
+    def __init__(self,currencyname,circulation,currencyvalue,communityname):
+        self.currencyname = currencyname
+        self.currencyvalue = currencyvalue 
+        self.circulation = circulation
+        self.communityname = communityname
+
+
+    # 打包創建社區貨幣資訊成一dict
+    def pack_transaction_to_dict(self):
+        record_dict = {
+            'currencyname': self.currencyname,
+            'currencyvalue': self.currencyvalue,
+            'circulation ': self.circulation ,
+            'communityname': self.communityname,
+        }
+        return record_dict
+
 class Block: 
     def __init__(self,previous_hash,node):
         self.previous_hash = previous_hash #next block hash
@@ -97,6 +115,7 @@ class BlockChain:
         self.chain = [] #All block store in blockchain now
         self.pending_transactions = [] #transactions pool
         self.pre_hash = ''
+        self.recordchain = []
 
     #初始化一筆交易
     def initialize_transaction(self, sender, receiver, amount, fee, message):
@@ -114,6 +133,10 @@ class BlockChain:
         self.chain.append(new_block) #Add genesis to blockchain
 
     # 放置交易紀錄至新區塊中
+    def add_transactions_to_block(self, record):
+        self.recordchain.append(record)
+
+    # 放置創建社區貨幣紀錄至新區塊中
     def add_transactions_to_block(self, block):
         self.pending_transactions.sort(key=lambda x: x.fee, reverse=True)
         if len(self.pending_transactions) > self.block_limitation:
@@ -153,12 +176,12 @@ class BlockChain:
             for transaction in block.transactions:
                 result[transaction.community] -= transaction.amount
                 if block.node == account:
-                    balance += transaction.fee
+                    result[transaction.community] += transaction.fee
                 if transaction.sender == account:
-                    balance -= transaction.amounts
-                    balance -= transaction.fee
+                    result[transaction.community] -= transaction.amounts
+                    result[transaction.community] -= transaction.fee
                 elif transaction.receiver == account:
-                    balance += transaction.amounts
+                    result[transaction.community] += transaction.amounts
         return result
 
     # 確認雜湊值是否正確
@@ -179,12 +202,23 @@ class BlockChain:
     def transaction_to_string(self, transaction): #transaction to string
         transaction_dict = {
             'sender': str(transaction.sender),
-            'receiver': str(transaction.sender),
+            'receiver': str(transaction.receiver),
             'amounts': transaction.amounts,
             'fee': transaction.fee,
             'message': transaction.message
         }
         return str(transaction_dict)
+
+    
+    # 將創建社區貨幣紀錄轉換成字串(dict)
+    def transaction_to_string(self, record): #transaction to string
+        record_dict = {
+            'currencyname': str(record.currencyname),
+            'currencyvalue': float(record.currencyvalue),
+            'circulation ': record.circulation,
+            'communityname': str(record.communityname)
+        }
+        return str(record_dict)
 
     #簽署交易
     def sign_transaction(self, transaction, private_key):
