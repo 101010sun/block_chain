@@ -2,6 +2,7 @@ import time
 import hashlib
 import rsa
 import cryptocode
+import Database.py
 
 class Transaction: 
     def __init__(self,sender,receiver,amounts,message,community):
@@ -24,11 +25,11 @@ class Transaction:
         return tmp_dict
 
 class Createrecord: 
-    def __init__(self,currencyname,circulation,currencyvalue,communityname):
+    def __init__(self,currencyname,circulation,currencyvalue,community):
         self.currencyname = currencyname
         self.currencyvalue = currencyvalue 
         self.circulation = circulation
-        self.communityname = communityname
+        self.community = community
 
 
     # 打包創建社區貨幣資訊成一dict
@@ -37,7 +38,7 @@ class Createrecord:
             'currencyname': self.currencyname,
             'currencyvalue': self.currencyvalue,
             'circulation ': self.circulation ,
-            'communityname': self.communityname,
+            'community': self.community,
         }
         return record_dict
 
@@ -132,8 +133,8 @@ class BlockChain:
         self.pre_hash = new_block.get_hash()
         self.chain.append(new_block) #Add genesis to blockchain
 
-    # 放置交易紀錄至新區塊中
-    def add_transactions_to_block(self, record):
+    # 放置交易紀錄至區塊中
+    def add_record_to_block(self, record):
         self.recordchain.append(record)
 
     # 放置創建社區貨幣紀錄至新區塊中
@@ -168,21 +169,35 @@ class BlockChain:
         print(self.chain)
         return new_block
     
-    # 取得帳戶餘額
+    # 取得帳戶餘額(account = 錢包地址)
     def get_balance(self, account): 
-        balance = 0
         result = dict({})
         for block in self.chain:
             for transaction in block.transactions:
-                result[transaction.community] -= transaction.amount
-                if block.node == account:
-                    result[transaction.community] += transaction.fee
                 if transaction.sender == account:
                     result[transaction.community] -= transaction.amounts
                     result[transaction.community] -= transaction.fee
                 elif transaction.receiver == account:
                     result[transaction.community] += transaction.amounts
         return result
+
+    # 取得平台錢包帳戶餘額
+    def platform_get_balance(self, account): 
+        plat_address = Database.Taken_plat_address(account)
+        result = dict({})
+        #計算交易手續費
+        for block in self.chain:
+            for transaction in block.transactions:
+                platform_balance[transaction.community] += transaction.fee
+                if transaction.sender == plat_address:
+                    platform_balance[transaction.community] -= transaction.amounts
+                    platform_balance[transaction.community] -= transaction.fee
+                elif transaction.receiver == plat_address:
+                    platform_balance[transaction.community] += transaction.amounts
+
+        for record in self.recordchain:
+            platform_balance[record.community] += record.circulation
+        return platform_balance
 
     # 確認雜湊值是否正確
     def verify_blockchain(self):
@@ -216,7 +231,7 @@ class BlockChain:
             'currencyname': str(record.currencyname),
             'currencyvalue': float(record.currencyvalue),
             'circulation ': record.circulation,
-            'communityname': str(record.communityname)
+            'community': str(record.community)
         }
         return str(record_dict)
 

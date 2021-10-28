@@ -218,3 +218,14 @@ def download_photo(name):
     cv2.destroyAllWindows()
 
 # print(Taken_privatekey('rgrwgN','GFGwfwfe3'))
+
+#取得平台錢包地址
+def Taken_plat_address(account):
+  projectionFields = ['walletaddress']
+  cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
+  data = [d for d in cursor]
+  walletaddress = data[0]['walletaddress']
+  if data != list([]):
+    return walletaddress
+  else:
+    return None
