@@ -18,7 +18,10 @@ col_Photo                    = db.Photo
 col_Check_community_manager  = db.Check_community_manager
 col_Check_community_user     = db.Check_community_user
 col_Check_createcommunity    = db.Check_createcommunity
-col_Communitymembers         = db.Communitymembers
+col_Community_members        = db.Community_members
+col_Community_bulletin       = db.Community_bulletin
+col_System_bulletin          = db.System_bulletin
+col_System_members           = db.System_members
 #connect error or not
 col_Information_user.stats
 col_Information_demand.stats
@@ -26,7 +29,9 @@ col_Photo.stats
 col_Check_community_manager.stats
 col_Check_community_user.stats
 col_Check_createcommunity.stats
-col_Communitymembers.stats
+col_Community_members.stats
+col_Community_bulletin.stats
+col_System_bulletin.stats
 
 
 # 新增使用者資訊
@@ -49,7 +54,6 @@ def insert_Information_user(name,sex,id_card,birth,email,phone,address,account,p
     info = col_Information_user.insert_one(data)
     return(info)
 
-
 def register():
   name = "葉清偉"
   sex = "男"
@@ -71,7 +75,6 @@ def register():
   e_private_key = Wallet.encryption_privatekey(private_key,password) #加密私鑰
   insert_Information_user(name,sex,e_id_card,birth,email,phone,address,account,photo_id,walletaddress,public_key,e_private_key,e_password)
 
-
 # 加入_需求資訊
 def insert_Information_demand(requester_id,applicant_id,Photo_id,productname,amount,details):
     data = {
@@ -86,7 +89,6 @@ def insert_Information_demand(requester_id,applicant_id,Photo_id,productname,amo
     }
     col_Information_demand.insert_one(data)
 
-
 # 加入_圖檔
 def insert_Photo(length,chunkSize,uploadDate,filename,metadata):
     data = {
@@ -98,7 +100,6 @@ def insert_Photo(length,chunkSize,uploadDate,filename,metadata):
     }
     col_Photo.insert_one(data)
 
-
 # 加入_社區管理員審核名單
 def insert_Check_community_manager(applicant_id,reason):
     data = {
@@ -107,13 +108,11 @@ def insert_Check_community_manager(applicant_id,reason):
     }
     col_Check_community_manager.insert_one(data)
 
-
 """applicant_id = ObjectId("6107205294c0b981697f05b3")
 applicant_id2 = ObjectId("6107209da0032317f9ae9cb0")
 applicant_id3 = ObjectId("6107129617d3c57cdf4aad38")
 applicant_id4 = ObjectId("6107125a7391e668b8407511")
 applicant_id5 = ObjectId("61071198a38e42fb9e4b4a24")"""
-
 
 # 加入_社區用戶審核名單
 def insert_Check_community_user(applicant_id,applyaddress):
@@ -122,7 +121,6 @@ def insert_Check_community_user(applicant_id,applyaddress):
       'applyaddress': applyaddress
     }
     col_Check_community_user.insert_one(data)
-
 
 # 加入_創建社區審核清單
 def insert_Check_createcommunity(applicant_id,communityname,communityaddress):
@@ -133,16 +131,22 @@ def insert_Check_createcommunity(applicant_id,communityname,communityaddress):
     }
     col_Check_createcommunity.insert_one(data)   
 
-
 # 加入_社區用戶名單
-def insert_Communitymembers(user_id,communityaddress,identity):
+def insert_Community_members(account,community,communityaddress,identity):
     data = {
-      'user_id':user_id, ###改Validation 取名
+      'account': account,
+      'community': community, 
       'communityaddress': communityaddress,
-      'identity': identity
+      'identity': identity #('管理員'、'一般用戶')
     }
-    col_Communitymembers.insert_one(data)   
+    col_Community_members.insert_one(data)   
 
+# 加入_平台管理者成員名單
+def insert_System_members(account):
+    data = {
+      'account': account
+    }
+    col_System_members.insert_one(data) 
 
 # 檢查此信箱和電話是否被使用過
 def Check_userinfor(email,phone):
@@ -155,16 +159,14 @@ def Check_userinfor(email,phone):
   else:
     return False
 
-
 # 檢查此身分證號碼是否被使用過
-def Check_account(id_card):
+def Check_id(id_card):
   cursor = col_Information_user.find({"id_card":str(id_card)})
   data = [d for d in cursor]
   if data == list([]): 
     return True
   else:
     return False
-
 
 # 取此帳號的加密密碼
 def Taken_password(account):
@@ -217,10 +219,8 @@ def download_photo(name):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-# print(Taken_privatekey('rgrwgN','GFGwfwfe3'))
-
-#取得平台錢包地址
-def Taken_plat_address(account):
+#取得此帳號錢包地址
+def Taken_address(account):
   projectionFields = ['walletaddress']
   cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
   data = [d for d in cursor]
@@ -229,3 +229,29 @@ def Taken_plat_address(account):
     return walletaddress
   else:
     return None
+
+# 新增_社區公告
+def insert_Community_bulletin(communityname, bul_title, bul_context):
+    data = {
+        'communityname': communityname,
+        'bulletin_title': bul_title,
+        'bulletin_context': bul_context
+    }
+    col_Community_bulletin.insert_one(data)
+
+# 新增_系統公告
+def insert_System_bulletin(bul_title, bul_context):
+    data = {
+        'bulletin_title': bul_title,
+        'bulletin_context': bul_context
+    }
+    col_System_bulletin.insert_one(data)
+
+# 檢查_此帳號是否被使用過
+def Check_account(account):
+  cursor = col_Information_user.find({"account":str(account)})
+  data = [d for d in cursor]
+  if data == list([]): 
+    return True
+  else:
+    return False

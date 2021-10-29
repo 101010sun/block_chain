@@ -2,7 +2,7 @@ import time
 import hashlib
 import rsa
 import cryptocode
-import Database.py
+import Database
 
 class Transaction: 
     def __init__(self,sender,receiver,amounts,message,community):
@@ -184,7 +184,7 @@ class BlockChain:
     # 取得平台錢包帳戶餘額
     def platform_get_balance(self, account): 
         plat_address = Database.Taken_plat_address(account)
-        result = dict({})
+        platform_balance = dict({})
         #計算交易手續費
         for block in self.chain:
             for transaction in block.transactions:

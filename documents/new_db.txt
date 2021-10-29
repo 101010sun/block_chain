@@ -1,0 +1,10 @@
+Check_community_manager
+Check_community_user
+Check_createcommunity
+Community_bulletin
+Community_members
+Information_demand
+Information_user
+Photo
+System_bulletin
+System_members

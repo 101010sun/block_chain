@@ -210,6 +210,7 @@ class Node:
             except Exception:
                 print(f"{message} cannot be parsed")
             print(f"[*] Received: {parsed_message}")
+            
             if message:
                 if parsed_message["identity"] == "user" and parsed_message["request"] == "get_balance":
                     message = connection.recv(1024)
@@ -235,12 +236,12 @@ class Node:
                     print(f"[*] Received: {parsed_message}")
                     if self.block_count:
                         transaction = self.blockchain.initialize_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
-                        private = Database.Taken_privatekey(parsed_message['sender'], parsed_message['password']) # 取sender私鑰
+                        private = Database.Taken_privatekey(parsed_message['account'], parsed_message['password']) # 取sender私鑰
                         signature = self.blockchain.sign_transaction(transaction, private) # 簽署交易
                         self.blockchain.add_transaction_to_pool(transaction, signature) # 將交易資料放入交易池
                         response = {'result': 'success'}
                     else:
-                        response = {'result': 'not me'}
+                        response = {'result': 'sign failed!'}
                     connection.send(pickle.dumps(response))
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
