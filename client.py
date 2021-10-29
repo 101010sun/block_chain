@@ -6,6 +6,7 @@ import pickle
 import stdiomask
 import Wallet
 import Database
+import Checkdata
 
 def handle_receive(client):
     transfer_str('user, 2')
@@ -187,34 +188,52 @@ if __name__ == "__main__":
             user_info = signup()
             if(user_info != dict({})): break
     
-    while(True):
-        for key, value in command_dict.items():
-            print(key,end='')
-            print(': ',end='')
-            print(value)
+    isjoincommunnity = Checkdata.check_has_community(user_info['帳號'])
+    if isjoincommunnity == None:
+        print("創建社區 or 加入社區 (1/2)?: ", end='')
         command = input("Command: ")
-        if str(command) not in command_dict.keys():
-            print("Unknown command.")
-            continue
-        message = {"identity": "user", "request": command_dict[str(command)]}
+        if str(command) == '1':
+            community = input('請輸入社區名稱: ')
+            # --申請加入社區清單
+        elif str(command) == '2':
+            community_list = Database.get_community() # 取得社區清單
+            flag = 0
+            for com in community_list:
+                print(flag + '. ' + com)
+                flag += 1
+            which_community = input("Command: ")
+            
+            # --申請加入社區清單
+    else:
+        while(True):
+            
+            for key, value in command_dict.items():
+                print(key,end='')
+                print(': ',end='')
+                print(value)
+            command = input("Command: ")
+            if str(command) not in command_dict.keys():
+                print("Unknown command.")
+                continue
+            message = {"identity": "user", "request": command_dict[str(command)]}
 
-        if command_dict[str(command)] == "get_balance":
-            rec = get_ip_getbalance(IPserver_host, IPserver_port, message)
-            if rec != {}:
-                target_host = rec['IP']
-                target_port = rec['Port_number']
-                result = get_balance_result(target_host, target_port, message, user_info)
-            else: print('[*] Get Balance Node Fail!')
-        
-        elif command_dict[str(command)] == "transaction":
-            rec = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
-            if rec != {}:
-                target_host = rec['IP']
-                target_port = rec['Port_number']
-                result = get_transaction_result(target_host, target_port, message, user_info)
-            else:
-                print('[*] Trancation Fail!')
+            if command_dict[str(command)] == "get_balance":
+                rec = get_ip_getbalance(IPserver_host, IPserver_port, message)
+                if rec != {}:
+                    target_host = rec['IP']
+                    target_port = rec['Port_number']
+                    result = get_balance_result(target_host, target_port, message, user_info)
+                else: print('[*] Get Balance Node Fail!')
+            
+            elif command_dict[str(command)] == "transaction":
+                rec = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
+                if rec != {}:
+                    target_host = rec['IP']
+                    target_port = rec['Port_number']
+                    result = get_transaction_result(target_host, target_port, message, user_info)
+                else:
+                    print('[*] Trancation Fail!')
 
-        elif command_dict[str(command)] == "exit":
-            break
+            elif command_dict[str(command)] == "exit":
+                break
 
