@@ -154,3 +154,5 @@ def insert_community(community):
         'community': community
     }
     col_Community.insert_one(data)
+
+

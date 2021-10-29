@@ -35,7 +35,7 @@ col_System_bulletin.stats
 col_Community.stats
 
 # 取得_此帳號的加密密碼
-def Taken_password(account):
+def taken_password(account):
   projectionFields = ['e_password']
   cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
   data = [d for d in cursor]
@@ -45,7 +45,7 @@ def Taken_password(account):
     return None
 
 # 取得_此帳號的私鑰
-def Taken_privatekey(account,password):
+def taken_privatekey(account,password):
   projectionFields = ['private_key']
   cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
   data = [d for d in cursor]
@@ -75,7 +75,7 @@ def download_photo(name):
     cv2.destroyAllWindows()
 
 # 取得_此帳號錢包地址
-def Taken_address(account):
+def taken_address(account):
   projectionFields = ['wallet_address']
   cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
   data = [d for d in cursor]
