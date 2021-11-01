@@ -2,7 +2,7 @@ import time
 import hashlib
 import rsa
 import cryptocode
-import Database
+import getData
 
 class Transaction: 
     def __init__(self,sender,receiver,amounts,message,community):
@@ -25,9 +25,9 @@ class Transaction:
         return tmp_dict
 
 class Createrecord: 
-    def __init__(self,currencyname,circulation,currencyvalue,community):
-        self.currencyname = currencyname
-        self.currencyvalue = currencyvalue 
+    def __init__(self,currency_name,circulation,currency_value,community):
+        self.currency_name = currency_name
+        self.currency_value = currency_value 
         self.circulation = circulation
         self.community = community
 
@@ -35,8 +35,8 @@ class Createrecord:
     # 打包創建社區貨幣資訊成一dict
     def pack_transaction_to_dict(self):
         record_dict = {
-            'currencyname': self.currencyname,
-            'currencyvalue': self.currencyvalue,
+            'currency_name': self.currency_name,
+            'currency_value': self.currency_value,
             'circulation ': self.circulation ,
             'community': self.community,
         }
@@ -126,6 +126,7 @@ class BlockChain:
         new_transaction = Transaction(sender, receiver, amount, fee, message)
         return new_transaction
 
+
     # 產生創世塊
     def create_genesis_block(self, nodeaddr):
         print("Create genesis block...")
@@ -133,11 +134,11 @@ class BlockChain:
         self.pre_hash = new_block.get_hash()
         self.chain.append(new_block) #Add genesis to blockchain
 
-    # 放置交易紀錄至區塊中
+    # 放置創建社區貨幣紀錄至新區塊中
     def add_record_to_block(self, record):
         self.recordchain.append(record)
 
-    # 放置創建社區貨幣紀錄至新區塊中
+    # 放置交易紀錄至區塊中
     def add_transactions_to_block(self, block):
         self.pending_transactions.sort(key=lambda x: x.fee, reverse=True)
         if len(self.pending_transactions) > self.block_limitation:
@@ -183,7 +184,7 @@ class BlockChain:
 
     # 取得平台錢包帳戶餘額
     def platform_get_balance(self, account): 
-        plat_address = Database.Taken_plat_address(account)
+        plat_address = getData.taken_plat_address(account)
         platform_balance = dict({})
         #計算交易手續費
         for block in self.chain:
@@ -224,7 +225,6 @@ class BlockChain:
         }
         return str(transaction_dict)
 
-    
     # 將創建社區貨幣紀錄轉換成字串(dict)
     def transaction_to_string(self, record): #transaction to string
         record_dict = {
@@ -246,7 +246,7 @@ class BlockChain:
         signature = rsa.sign(transaction_str.encode('utf-8'), private_key_pkcs, 'SHA-256')
         return signature
 
-    # 送上鏈
+    # 放置交易紀錄至交易池中
     def add_transaction_to_pool(self, transaction, signature):
         public_key = '-----BEGIN RSA PUBLIC KEY-----\n'
         public_key += transaction.sender
@@ -291,6 +291,12 @@ class BlockChain:
             return False
 
       ###Wallet      
+    
+
+
+
+
+    
     # 產生錢包地址
     # return: 錢包地址、?私鑰
     def generate_address(self):

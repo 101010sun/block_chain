@@ -60,7 +60,7 @@ def insert_information_demand(requester_account,applicant_account,Photo_id,produ
       'requester_account': requester_account,
       'applicant_account': applicant_account,
       'demand_info':{
-        'Photo_id': Photo_id,
+        'photo_id': Photo_id,
         'product_name': product_name,
         'amount': amount,
         'details': details
@@ -149,9 +149,11 @@ def insert_System_bulletin(bul_title, bul_context):
     col_System_bulletin.insert_one(data)
 
 # 新增_社區名單
-def insert_community(community):
+def insert_community(community, community_wallet_address, community_private_key):
     data = {
-        'community': community
+        'community': community,
+        'community_wallet_address': community_wallet_address,
+        'community_private_key': community_private_key
     }
     col_Community.insert_one(data)
 

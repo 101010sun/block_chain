@@ -4,7 +4,7 @@ import threading
 import time
 import pickle
 import Blockchain
-import Database
+import getData
 
 class Node:
     def __init__(self):
@@ -38,7 +38,7 @@ class Node:
             con_main_syn.start() 
             con_main_syn.join() # 等待同步資料執行結束
             time.sleep(0.5)
-            con_index_donormal = threading.Thread(target=self.connect_to_index, args=("done_first_syn",)) # 告知索引伺服器同步資料完成
+            con_index_donormal = threading.Thread(target=self.connect_to_index, args=("done_hard",)) # 告知索引伺服器同步資料完成
             con_index_donormal.start()
 
         t = threading.Thread(target=self.wait_for_socket_connection) # 開始監聽
@@ -95,7 +95,7 @@ class Node:
                 con_index_donormal = threading.Thread(target=self.connect_to_index, args=('done_normal',))
                 con_index_donormal.start()
 
-            elif request == 'done_first_syn':
+            elif request == 'done_hard':
                 time.sleep(0.5)
                 message = {"IP": self.socket_host, "Port_number": self.socket_port} # 傳送自己的節點IP、Port number
                 s.send(pickle.dumps(message))
@@ -236,13 +236,24 @@ class Node:
                     print(f"[*] Received: {parsed_message}")
                     if self.block_count:
                         transaction = self.blockchain.initialize_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
-                        private = Database.Taken_privatekey(parsed_message['account'], parsed_message['password']) # 取sender私鑰
+                        private = getData.taken_privatekey(parsed_message['account'], parsed_message['password']) # 取sender私鑰
                         signature = self.blockchain.sign_transaction(transaction, private) # 簽署交易
                         self.blockchain.add_transaction_to_pool(transaction, signature) # 將交易資料放入交易池
                         response = {'result': 'success'}
                     else:
                         response = {'result': 'sign failed!'}
                     connection.send(pickle.dumps(response))
+                
+                elif parsed_message["identity"] == "user" and parsed_message["request"] == "issue_money":
+                    message = connection.recv(1024)
+                    try:
+                        parsed_message = pickle.loads(message)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(f"[*] Received: {parsed_message}")
+
+                    record = self.blockchain.initialize_record(parsed_message['currency_name'], parsed_message['currency_value'], parsed_message['circulation'], parsed_message['community'])
+                    self.blockchain.add_record_to_block(record)
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
                     if self.blockchain.chain != []:

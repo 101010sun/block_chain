@@ -124,6 +124,15 @@ class IPServer:
                     response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
                     connection.send(pickle.dumps(response))
 
+                elif parsed_message["identity"] == "user" and parsed_message["request"] == "issue_money":
+                    # get work_node loc
+                    while(True):
+                        node_dict = self.get_free_node(3)
+                        if node_dict != None: break
+                    # send work_node loc to ask_node
+                    response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
+                    connection.send(pickle.dumps(response))
+
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
                     # get work_node loc
                     while(True):
@@ -152,6 +161,15 @@ class IPServer:
                         self.blocking_port = new_port
                         work = 3
                     self.insert_node(new_ip, new_port, work)
+
+                elif parsed_message["identity"] == "node" and parsed_message["request"] == "broadcast_list":
+                    response = {'length': len(self.main_node)}
+                    connection.send(pickle.dumps(response)) # 傳送長度
+
+                    for node in self.main_node: # 傳送每一節點資料
+                        time.sleep(0.5)
+                        response = {"IP": node['IP'], "Port_number": node['Port_number']}
+                        connection.send(pickle.dumps(response))
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_normal":
                     # receive done_node loc
@@ -186,7 +204,19 @@ class IPServer:
                     self.blocking_port = next_dict['Port_number']
                     connection.send(pickle.dumps(response))
                 
-                elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_first_syn":
+                elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_middle":
+                    # receive done_node loc
+                    message = connection.recv(1024)
+                    try:
+                        parsed_message = pickle.loads(message)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(f"[*] Received: {parsed_message}")
+                    done_ip = parsed_message['IP']
+                    done_port = int(parsed_message['Port_number'])
+                    self.set_work_done(done_ip, done_port, 3)
+
+                elif parsed_message["identity"] == "node" and parsed_message["request"] == "done_hard":
                     # receive done_node loc
                     message = connection.recv(1024)
                     try:
@@ -198,14 +228,6 @@ class IPServer:
                     done_port = int(parsed_message['Port_number'])
                     self.set_work_done(done_ip, done_port, 5)
 
-                elif parsed_message["identity"] == "node" and parsed_message["request"] == "broadcast_list":
-                    response = {'length': len(self.main_node)}
-                    connection.send(pickle.dumps(response)) # 傳送長度
-
-                    for node in self.main_node: # 傳送每一節點資料
-                        time.sleep(0.5)
-                        response = {"IP": node['IP'], "Port_number": node['Port_number']}
-                        connection.send(pickle.dumps(response))
 
 
 if __name__ == "__main__":

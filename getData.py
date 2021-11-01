@@ -85,6 +85,17 @@ def taken_address(account):
   else:
     return None
 
+# 取得_平台錢包地址
+def taken_plat_address(account):
+  projectionFields = ['wallet_address']
+  cursor = col_System_members.find({"account": str(account)}, projection = projectionFields)
+  data = [d for d in cursor]
+  walletaddress = data[0]['wallet_address']
+  if data != list([]):
+    return walletaddress
+  else:
+    return None
+
 # 取得_社區名單
 def get_community():
     cursor = col_Community.find()
