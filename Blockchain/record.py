@@ -3,8 +3,8 @@ import hashlib
 import rsa
 import cryptocode
 
-class Createrecord: 
-    def __init__(self,currency_name,circulation,currency_value,community):
+class Record: 
+    def __init__(self,currency_name, currency_value, circulation, community):
         self.currency_name = currency_name
         self.currency_value = currency_value 
         self.circulation = circulation

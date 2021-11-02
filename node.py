@@ -3,7 +3,7 @@ import socket
 import threading
 import time
 import pickle
-import Blockchain
+from Blockchain import block, blockchain, record, transaction
 from Model import getData
 
 class Node:
@@ -18,7 +18,7 @@ class Node:
         self.blocking = False
         self.block_count = int(0)
         self.main_node_list = list([])
-        self.blockchain = Blockchain.BlockChain()
+        self.blockchain = blockchain.BlockChain()
 
         self.start_socket_server()
     
@@ -143,7 +143,7 @@ class Node:
                     if parsed_message['result'] == 'finish':
                         break
                     elif parsed_message['result'] == 'not_yet':
-                        a_block = Blockchain.Block(parsed_message['previous_hash'], parsed_message['node'])
+                        a_block = block.Block(parsed_message['previous_hash'], parsed_message['node'])
                         a_block.add_other_info(parsed_message['hash'], parsed_message['nonce'], parsed_message['timestamp'])
                         for i in range(0, parsed_message['transactions_len']):
                             response = s.recv(4096)
@@ -152,7 +152,7 @@ class Node:
                                     parsed_message = pickle.loads(response)
                                 except Exception:
                                     print(f"{message} cannot be parsed")
-                            a_transaction = Blockchain.Transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
+                            a_transaction = transaction.Transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
                             a_block.add_transaction(a_transaction)
                         self.blockchain.chain.append(a_block)
             else:
@@ -191,24 +191,15 @@ class Node:
             s.close()
 
     # 廣播新交易func.
-    def connect_to_main_node_issue_money(self, request, new_record):
+    def connect_to_main_node_new_record(self, request, new_record):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((self.target_host, self.target_port))
             message = {"identity": "node", "request": request} # 發送身分、請求
             s.send(pickle.dumps(message))
 
             time.sleep(0.5)
-            new_block_dict = new_block.pack_block_to_dict()
-            new_block_dict['result'] = 'not_yet'
-            s.send(pickle.dumps(new_block_dict))
-            time.sleep(0.5)
-            for t in new_block.transactions:
-                a_transaction_dict = t.pack_trainsaction_to_dict()
-                s.send(pickle.dumps(a_transaction_dict))
-                time.sleep(0.5)
-            
-            response = {'result': 'finish'}
-            s.send(pickle.dumps(response))
+            new_record_dict = new_record.pack_transaction_to_dict()
+            s.send(pickle.dumps(new_record_dict))
 
             s.shutdown(2)
             s.close()
@@ -258,10 +249,10 @@ class Node:
                         print(f"{message} cannot be parsed")
                     print(f"[*] Received: {parsed_message}")
                     if self.block_count:
-                        transaction = self.blockchain.initialize_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
+                        a_transaction = self.blockchain.initialize_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
                         private = getData.taken_privatekey(parsed_message['account'], parsed_message['password']) # 取sender私鑰
-                        signature = self.blockchain.sign_transaction(transaction, private) # 簽署交易
-                        self.blockchain.add_transaction_to_pool(transaction, signature) # 將交易資料放入交易池
+                        signature = self.blockchain.sign_transaction(a_transaction, private) # 簽署交易
+                        self.blockchain.add_transaction_to_pool(a_transaction, signature) # 將交易資料放入交易池
                         response = {'result': 'success'}
                     else:
                         response = {'result': 'sign failed!'}
@@ -275,11 +266,22 @@ class Node:
                         print(f"{message} cannot be parsed")
                     print(f"[*] Received: {parsed_message}")
 
-                    record = self.blockchain.initialize_record(parsed_message['currency_name'], parsed_message['currency_value'], parsed_message['circulation'], parsed_message['community'])
-                    self.blockchain.add_record_to_block(record)
-                    # --廣播此紀錄給其他節點
+                    a_record = record.Record(parsed_message['currency_name'], parsed_message['currency_value'], parsed_message['circulation'], parsed_message['community'])
+                    self.blockchain.add_record_to_block(a_record)
 
-                    # --告知所以伺服器 done_middle
+                    con_index_node_list = threading.Thread(target=self.connect_to_index, args=('broadcast_list',)) # 更新廣播清單
+                    con_index_node_list.start()
+                    print('[*] broadcast_list!')
+                    for node_address in self.main_node_list: # 廣播
+                        if (node_address['IP'] != self.socket_host) or (node_address['Port_number'] != self.socket_port):
+                            self.target_host = node_address['IP']
+                            self.target_port = int(node_address['Port_number'])
+                            print('[*] !', self.target_host, self.target_port)
+                            con_node_broad = threading.Thread(target=self.connect_to_main_node_new_record, args=('new_record', record,))
+                            con_node_broad.start()
+                    
+                    con_index_done_middle = threading.Thread(target=self.connect_to_index, args=('done_middle',)) # 告知所以伺服器 done_middle
+                    con_index_done_middle.start()
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
                     if self.blockchain.chain != []:
@@ -316,7 +318,7 @@ class Node:
                         if parsed_message['result'] == 'finish':
                             break
                         elif parsed_message['result'] == 'not_yet':
-                            a_block = Blockchain.Block(parsed_message['previous_hash'], parsed_message['node'])
+                            a_block = block.Block(parsed_message['previous_hash'], parsed_message['node'])
                             a_block.add_other_info(parsed_message['hash'], parsed_message['nonce'], parsed_message['timestamp'])
                             for i in range(0, parsed_message['transactions_len']):
                                 response = s.recv(4096)
@@ -326,12 +328,22 @@ class Node:
                                         print(parsed_message)
                                     except Exception:
                                         print(f"{message} cannot be parsed")
-                                a_transaction = Blockchain.Transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
+                                a_transaction = transaction.Transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
                                 a_block.add_transaction(a_transaction)
                             self.blockchain.chain.append(a_block)
                     print(self.blockchain.chain)
 
+                elif parsed_message['identity'] == "node" and parsed_message['request'] == "new_record":
+                    message = connection.recv(1024)
+                    try:
+                        parsed_message = pickle.loads(message)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(parsed_message)
+                    a_record = record.Record(parsed_message['currency_name'], parsed_message['currency_value'], parsed_message['circulation'], parsed_message['community'])
+                    self.blockchain.add_record_to_block(a_record)
 
+    # 產生新區塊func.
     def produce_block(self):
         while(self.blocking):
             new_block = self.blockchain.node_block(self.Index_host) # 產生新區塊
