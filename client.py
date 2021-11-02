@@ -5,7 +5,7 @@ import time
 import pickle
 import stdiomask
 import Wallet
-import insertData, getData, checkData
+from Model import insertData, getData, checkData
 
 def handle_receive(client):
     transfer_str('user, 2')

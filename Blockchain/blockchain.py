@@ -2,112 +2,8 @@ import time
 import hashlib
 import rsa
 import cryptocode
-import getData
-
-class Transaction: 
-    def __init__(self,sender,receiver,amounts,message,community):
-        self.sender = sender 
-        self.receiver = receiver 
-        self.amounts = amounts 
-        self.fee = amounts * 0.01 
-        self.message = message 
-        self.community = community
-    
-    # 打包交易資訊成一dict
-    def pack_transaction_to_dict(self):
-        tmp_dict = {
-            'sender': self.sender,
-            'receiver': self.receiver,
-            'amounts': self.amounts,
-            'msg': self.message,
-            'community': self.community
-        }
-        return tmp_dict
-
-class Createrecord: 
-    def __init__(self,currency_name,circulation,currency_value,community):
-        self.currency_name = currency_name
-        self.currency_value = currency_value 
-        self.circulation = circulation
-        self.community = community
-
-
-    # 打包創建社區貨幣資訊成一dict
-    def pack_transaction_to_dict(self):
-        record_dict = {
-            'currency_name': self.currency_name,
-            'currency_value': self.currency_value,
-            'circulation ': self.circulation ,
-            'community': self.community,
-        }
-        return record_dict
-
-class Block: 
-    def __init__(self,previous_hash,node):
-        self.previous_hash = previous_hash #next block hash
-        self.hash = '' # this block hash
-        self.difficulty = 5
-        self.nonce = 0 #key
-        self.timestamp = int(time.time()) 
-        self.transactions = [] 
-        self.node = node
-
-    # 添加(除建構子和交易外的)資訊填入
-    def add_other_info(self, hash, nonce, timestamp):
-        self.hash = hash
-        self.nonce = nonce
-        self.timestamp = timestamp
-
-    # 添加交易資訊填入
-    def add_transaction(self, transaction):
-        self.transactions.append(transaction)
-
-    # 打包區塊資訊成一dict(除交易)
-    def pack_block_to_dict(self):
-        tmp_dict = {
-            'previous_hash': self.previous_hash,
-            'hash': self.hash,
-            'nonce': self.nonce,
-            'timestamp': self.timestamp,
-            'transactions_len': len(self.transactions),
-            'node': self.node
-            }
-        return tmp_dict
-
-    # 將交易明細轉換成字串(dict)
-    def transaction_to_string(self, transaction): #transaction to string
-        transaction_dict = {
-            'sender': str(transaction.sender),
-            'receiver': str(transaction.sender),
-            'amounts': transaction.amounts,
-            'fee': transaction.fee,
-            'message': transaction.message
-        }
-        return str(transaction_dict)
-
-    # 把區塊紀錄內的所有交易明細轉換成一個字串
-    def get_transaction_string(self): #take all transaction from block turn to string 
-        transaction_str = ''
-        for transaction in self.transactions:
-            transaction_str += self.transaction_to_string(transaction) #transaction_str = transaction_str + self.transaction_to_string(transaction)
-        return transaction_str 
-    
-    # 依據資料產生相對應的雜湊值
-    def get_hash(self):
-        s = hashlib.sha256()
-        s.update(
-            (
-                self.previous_hash 
-                + str(self.timestamp) #When block produce
-                + str(self.get_transaction_string()) #all transaction from block
-                + str(self.nonce) #mining nonce
-            ).encode("utf-8")
-        ) #Update hash SHA256
-        h = s.hexdigest() #get hash
-        self.hash = h
-        return h
-    
-    
+from Model import getData
+from Blockchain import block, record, transaction
 
 class BlockChain: 
     def __init__(self):
@@ -123,14 +19,14 @@ class BlockChain:
         if self.get_balance(sender) < amount + fee:
             print("Balance not enough!")
             return False
-        new_transaction = Transaction(sender, receiver, amount, fee, message)
+        new_transaction = transaction.Transaction(sender, receiver, amount, fee, message)
         return new_transaction
 
 
     # 產生創世塊
     def create_genesis_block(self, nodeaddr):
         print("Create genesis block...")
-        new_block = Block('https://www.youtube.com/watch?v=QuUWPqlhuNU&ab_channel=%E5%8B%95%E7%89%A9%E5%AE%B6', nodeaddr)
+        new_block = block.Block('https://www.youtube.com/watch?v=QuUWPqlhuNU&ab_channel=%E5%8B%95%E7%89%A9%E5%AE%B6', nodeaddr)
         self.pre_hash = new_block.get_hash()
         self.chain.append(new_block) #Add genesis to blockchain
 
@@ -154,7 +50,7 @@ class BlockChain:
         start = time.process_time()
 
         last_block = self.chain[-1]
-        new_block = Block(last_block.hash,node)
+        new_block = block.Block(last_block.hash,node)
 
         self.add_transactions_to_block(new_block)
         new_block.previous_hash = last_block.hash

@@ -4,7 +4,7 @@ import threading
 import time
 import pickle
 import Blockchain
-import getData
+from Model import getData
 
 class Node:
     def __init__(self):
@@ -190,6 +190,29 @@ class Node:
             s.shutdown(2)
             s.close()
 
+    # 廣播新交易func.
+    def connect_to_main_node_issue_money(self, request, new_record):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((self.target_host, self.target_port))
+            message = {"identity": "node", "request": request} # 發送身分、請求
+            s.send(pickle.dumps(message))
+
+            time.sleep(0.5)
+            new_block_dict = new_block.pack_block_to_dict()
+            new_block_dict['result'] = 'not_yet'
+            s.send(pickle.dumps(new_block_dict))
+            time.sleep(0.5)
+            for t in new_block.transactions:
+                a_transaction_dict = t.pack_trainsaction_to_dict()
+                s.send(pickle.dumps(a_transaction_dict))
+                time.sleep(0.5)
+            
+            response = {'result': 'finish'}
+            s.send(pickle.dumps(response))
+
+            s.shutdown(2)
+            s.close()
+
     # 監聽func.
     def wait_for_socket_connection(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -254,6 +277,9 @@ class Node:
 
                     record = self.blockchain.initialize_record(parsed_message['currency_name'], parsed_message['currency_value'], parsed_message['circulation'], parsed_message['community'])
                     self.blockchain.add_record_to_block(record)
+                    # --廣播此紀錄給其他節點
+
+                    # --告知所以伺服器 done_middle
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
                     if self.blockchain.chain != []:
