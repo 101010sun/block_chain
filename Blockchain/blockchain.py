@@ -22,7 +22,6 @@ class BlockChain:
         new_transaction = transaction.Transaction(sender, receiver, amount, fee, message)
         return new_transaction
 
-
     # 產生創世塊
     def create_genesis_block(self, nodeaddr):
         print("Create genesis block...")
@@ -30,7 +29,7 @@ class BlockChain:
         self.pre_hash = new_block.get_hash()
         self.chain.append(new_block) #Add genesis to blockchain
 
-    # 放置創建社區貨幣紀錄至新區塊中
+    # 放置創建社區貨幣紀錄
     def add_record_to_block(self, record):
         self.recordchain.append(record)
 
@@ -79,10 +78,9 @@ class BlockChain:
         return result
 
     # 取得平台錢包帳戶餘額
-    def platform_get_balance(self, account): 
-        plat_address = getData.taken_plat_address(account)
+    def get_system_balance(self, plat_address): 
         platform_balance = dict({})
-        #計算交易手續費
+        # 計算交易手續費
         for block in self.chain:
             for transaction in block.transactions:
                 platform_balance[transaction.community] += transaction.fee

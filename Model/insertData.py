@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 import cryptocode
-import Wallet
 from bson.objectid import ObjectId
 import gridfs
 import numpy as np
@@ -157,4 +156,6 @@ def insert_community(community, community_wallet_address, community_private_key)
     }
     col_Community.insert_one(data)
 
-
+# ----test----
+# insert_System_members('10')
+insert_information_demand('10','system','test','test',10,'test')

@@ -3,20 +3,17 @@ import hashlib
 import cryptocode
 
 # 產生錢包地址
-# return: 錢包地址、?私鑰
+# return: 錢包地址(公鑰)、私鑰
 def generate_address():
     public, private = rsa.newkeys(512) #rsa 
-    #PublicKey(8110652037018951423415384068343669562112781192066917099227440355062887030082561641925872544251324619419460659259927466333657527066898085681936273858467987, 65537)
-    #PrivatKey
     #public key
     public_key = public.save_pkcs1()
-    with open('public.pem','wb')as f:
-        f.write(public_key)
+    # with open('public.pem','wb')as f:
+    #     f.write(public_key)
     #private key
     private_key = private.save_pkcs1()
-    with open('private.pem','wb')as f:
-        f.write(private_key)
-    #print(str(public_key))
+    # with open('private.pem','wb')as f:
+    #     f.write(private_key)
     
     #過濾地址
     address = str(public_key).replace('\\n','')

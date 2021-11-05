@@ -10,7 +10,6 @@ class Record:
         self.circulation = circulation
         self.community = community
 
-
     # 打包創建社區貨幣資訊成一dict
     def pack_transaction_to_dict(self):
         record_dict = {

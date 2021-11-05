@@ -38,6 +38,8 @@ col_Commmunity.stats
 def check_account(account):
   cursor = col_Information_user.find({"account":str(account)})
   data = [d for d in cursor]
+  if account == 'system':
+    return False
   if data == list([]): 
     return True
   else:
@@ -55,7 +57,7 @@ def check_id(id_card):
 # 檢查此帳號是否已加入社區
 def check_has_community(account):
     myquery = {'account': account}
-    cursor = col_Community_members.find()
+    cursor = col_Community_members.find(myquery)
     data = [d for d in cursor]
     if data != list([]):
         return data
@@ -73,3 +75,12 @@ def check_userinfor(email,phone):
   else:
     return False
 
+# 檢查此帳號是否為平台管理者
+def check_is_system_manage(account):
+  myquery = {'account': account}
+  cursor = col_System_members.find(myquery)
+  data = [d for d in cursor]
+  if data != list([]):
+    return True
+  else:
+    return None

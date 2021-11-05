@@ -133,6 +133,15 @@ class IPServer:
                     response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
                     connection.send(pickle.dumps(response))
 
+                elif parsed_message["identity"] == "user" and parsed_message["request"] == "get_system_balance":
+                    # get work_node loc
+                    while(True):
+                        node_dict = self.get_free_node(1)
+                        if node_dict != None: break
+                    # send work_node loc to ask_node
+                    response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
+                    connection.send(pickle.dumps(response))
+
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
                     # get work_node loc
                     while(True):
@@ -227,8 +236,6 @@ class IPServer:
                     done_ip = parsed_message['IP']
                     done_port = int(parsed_message['Port_number'])
                     self.set_work_done(done_ip, done_port, 5)
-
-
 
 if __name__ == "__main__":
     server = IPServer()

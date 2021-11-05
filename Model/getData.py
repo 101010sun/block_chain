@@ -1,9 +1,6 @@
 from pymongo import MongoClient
-import cryptocode
-import Wallet
-from bson.objectid import ObjectId
+from Blockchain import Wallet
 import gridfs
-import numpy as np
 import cv2
 
 #local host
@@ -36,13 +33,34 @@ col_Community.stats
 
 # 取得_此帳號的加密密碼
 def taken_password(account):
-  projectionFields = ['e_password']
-  cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
-  data = [d for d in cursor]
-  if data != list([]):
-    return data[0]['e_password']
-  else:
-    return None
+    projectionFields = ['e_password']
+    cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
+    data = [d for d in cursor]
+    if data != list([]):
+        return data[0]['e_password']
+    else:
+        return None
+
+# 取得_此帳號的基本資料
+def taken_userinfo(account):
+    myquery = {'account': account}
+    projectionFields = ['account']
+    cursor = col_Information_user.find(myquery)
+    data = [d for d in cursor]
+    if data != list([]):
+        return data
+    else:
+        return None
+
+# 取得_此帳號用戶名
+def taken_username(account):
+    projectionFields = ['name']
+    cursor = col_Information_user.find({"account": str(account)}, projection = projectionFields)
+    data = [d for d in cursor]
+    if data != list([]):
+        return (account,data[0]['name'])
+    else:
+        return None
 
 # 取得_此帳號的私鑰
 def taken_privatekey(account,password):
@@ -60,19 +78,37 @@ def taken_privatekey(account,password):
 def download_photo(name):
     data = db.fs.files.find_one({'filename':name})
     my_id = data['_id']
-    fs = gridfs.GridFS(db) #fs--選取資料庫
+    fs = gridfs.GridFS(db) # fs--選取資料庫
     outputdata = fs.get(my_id).read()
     download_location = "C:/Users/USER/block_chain/Pic/" + name
     output = open(download_location, "wb")
     output.write(outputdata)
     output.close()
     print("download complete")
-
-    #圖片顯示
-    img = cv2.imread(name)
+    
+    img = cv2.imread(name) # 圖片顯示
     cv2.imshow('My Profile', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+# 取得_此帳號之需求資訊 ?
+def taken_mysalelist(account):
+  myquery = {'requester_account': account}
+  cursor = col_Information_demand.find(myquery)
+  data = [d for d in cursor]
+  if data != list([]):
+      return data
+  else:
+      return None
+
+# 取得_所有需求資訊
+def taken_allsalelist():
+  cursor = col_Information_demand.find_one()
+  data = [d for d in cursor]
+  if data != list([]):
+    return data
+  else:
+    return None
 
 # 取得_此帳號錢包地址
 def taken_address(account):
@@ -86,9 +122,9 @@ def taken_address(account):
     return None
 
 # 取得_平台錢包地址
-def taken_plat_address(account):
+def taken_plat_address():
   projectionFields = ['wallet_address']
-  cursor = col_System_members.find({"account": str(account)}, projection = projectionFields)
+  cursor = col_System_members.find(projection = projectionFields)
   data = [d for d in cursor]
   walletaddress = data[0]['wallet_address']
   if data != list([]):
@@ -97,7 +133,17 @@ def taken_plat_address(account):
     return None
 
 # 取得_社區名單
-def get_community():
+def take_community():
     cursor = col_Community.find()
     data = [d for d in cursor]
     return data
+
+# 取得_創建社區審查清單
+def take_create_community():
+    cursor = col_Check_createcommunity.find()
+    data = [d for d in cursor]
+    return data
+
+# ----test----
+# print(Taken_mysalelist())
+print(taken_mysalelist('10'))

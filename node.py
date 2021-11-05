@@ -277,11 +277,25 @@ class Node:
                             self.target_host = node_address['IP']
                             self.target_port = int(node_address['Port_number'])
                             print('[*] !', self.target_host, self.target_port)
-                            con_node_broad = threading.Thread(target=self.connect_to_main_node_new_record, args=('new_record', record,))
+                            con_node_broad = threading.Thread(target=self.connect_to_main_node_new_record, args=('new_record', a_record,))
                             con_node_broad.start()
                     
                     con_index_done_middle = threading.Thread(target=self.connect_to_index, args=('done_middle',)) # 告知所以伺服器 done_middle
                     con_index_done_middle.start()
+
+                elif parsed_message["identity"] == "user" and parsed_message["request"] == "get_system_balance":
+                    message = connection.recv(1024)
+                    try:
+                        parsed_message = pickle.loads(message)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(f"[*] Received: {parsed_message}")
+                    balance = self.blockchain.get_system_balance(parsed_message['account']) # 計算帳戶餘額
+                    response = {'result': balance}
+                    connection.send(pickle.dumps(response))
+
+                    con_index_done = threading.Thread(target=self.connect_to_index, args=('done_normal',))
+                    con_index_done.start()
 
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "synchronize_chain":
                     if self.blockchain.chain != []:
