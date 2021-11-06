@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 import cryptocode
-import Wallet
 from bson.objectid import ObjectId
 import gridfs
 import numpy as np
@@ -74,8 +73,7 @@ def check_userinfor(email,phone):
     return True
   else:
     return False
-
-# 檢查此帳號是否為平台管理者
+# 檢查此帳號是否為平台管
 def check_is_system_manage(account):
   myquery = {'account': account}
   cursor = col_System_members.find(myquery)
@@ -84,3 +82,17 @@ def check_is_system_manage(account):
     return True
   else:
     return None
+
+# 檢查平台密碼正確性
+def check_platform_password(password):
+  projectionFields = ['platform_password']
+  cursor = col_System_members.find(projection = projectionFields)
+  data = [d for d in cursor]
+  platform_password = data[0]['platform_password']
+  check = encryption_id_card(password)
+  if check == platform_password:
+    print(platform_password)
+  else:
+    print('error')
+
+check_platform_password('platform_password')

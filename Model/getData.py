@@ -138,12 +138,29 @@ def take_community():
     data = [d for d in cursor]
     return data
 
+# 取得_社區用戶名單
+def take_community():
+    cursor = col_Community_members.find()
+    data = [d for d in cursor]
+    return data
+
 # 取得_創建社區審查清單
 def take_create_community():
     cursor = col_Check_createcommunity.find()
     data = [d for d in cursor]
     return data
 
+# 取得_社區用戶審核名單
+def take_create_community():
+    cursor = col_Check_community_user.find()
+    data = [d for d in cursor]
+    return data
+
+# 取得_社區管理員審核名單
+def take_create_community():
+    cursor =  col_Check_community_manager.find()
+    data = [d for d in cursor]
+    return data
 # ----test----
 # print(Taken_mysalelist())
 print(taken_mysalelist('10'))

@@ -63,3 +63,16 @@ def decryption_privatekey(e_private_key, password):
     private_key = cryptocode.decrypt(str(e_private_key),str(password))
     return private_key
 
+# 加密社區私鑰
+def encryption_comm_privatekey(private_key,timestamp,community_name):
+    key = {
+        timestamp + community_name
+    }
+    e_private_key = cryptocode.encrypt(str(private_key),str(key))
+    return e_private_key
+
+# 解密社區私鑰
+def decryption_comm_privatekey(e_private_key, password):
+    private_key = cryptocode.decrypt(str(e_private_key),str(key))
+    return private_key
+
