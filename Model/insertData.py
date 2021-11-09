@@ -1,9 +1,8 @@
 from pymongo import MongoClient
-import cryptocode
-from bson.objectid import ObjectId
+from Blockchain import Wallet
 import gridfs
 import numpy as np
-import cv2
+import cryptocode
 
 #local host
 conn = MongoClient()
@@ -132,8 +131,8 @@ def insert_System_members(account):
 
 # 新增_平台管理者名單(創建)
 def system_members(account,platform_password,system_wallet_address,system_private_key):
-  e_platform_password = encryption_id_card(platform_password)
-  e_system_private_key = encryption_privatekey(private_key, password) #傳入私鑰與明文密碼
+  e_platform_password = Wallet.encryption_id_card(platform_password)
+  e_system_private_key = Wallet.encryption_privatekey(system_private_key, platform_password) #傳入私鑰與明文密碼
   cursor = col_System_members.find()
   data = [d for d in cursor]
   if data == list([]):
@@ -183,6 +182,6 @@ def insert_community(community, community_wallet_address, community_private_key)
 
 # ----test----
 # insert_System_members('10')
-system_members(['53'],'platform_password','system_wallet_address','system_private_key')
-insert_System_members(['10'])
+# system_members(['53'],'platform_password','system_wallet_address','system_private_key')
+# insert_System_members(['10'])
   

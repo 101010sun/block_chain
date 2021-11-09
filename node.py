@@ -266,7 +266,7 @@ class Node:
                         print(f"{message} cannot be parsed")
                     print(f"[*] Received: {parsed_message}")
 
-                    a_record = record.Record(parsed_message['currency_name'], parsed_message['currency_value'], parsed_message['circulation'], parsed_message['community'])
+                    a_record = record.Record(parsed_message['currency_name'], parsed_message['currency_value'], parsed_message['circulation'], parsed_message['community'], parsed_message['timestamp'])
                     self.blockchain.add_record_to_block(a_record)
 
                     con_index_node_list = threading.Thread(target=self.connect_to_index, args=('broadcast_list',)) # 更新廣播清單
@@ -354,7 +354,7 @@ class Node:
                     except Exception:
                         print(f"{message} cannot be parsed")
                     print(parsed_message)
-                    a_record = record.Record(parsed_message['currency_name'], parsed_message['currency_value'], parsed_message['circulation'], parsed_message['community'])
+                    a_record = record.Record(parsed_message['currency_name'], parsed_message['currency_value'], parsed_message['circulation'], parsed_message['community'], parsed_message['timestamp'])
                     self.blockchain.add_record_to_block(a_record)
 
     # 產生新區塊func.

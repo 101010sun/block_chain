@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-import Wallet
+from Blockchain import Wallet
 import gridfs
 import cv2
 
