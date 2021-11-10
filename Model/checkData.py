@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 import cryptocode
-import Wallet
+from Blockchain import Wallet
 from bson.objectid import ObjectId
 import gridfs
 import numpy as np

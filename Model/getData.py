@@ -146,4 +146,4 @@ def take_create_community():
 
 # ----test----
 # print(Taken_mysalelist())
-print(taken_mysalelist('10'))
+# print(taken_mysalelist('10'))
