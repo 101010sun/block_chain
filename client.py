@@ -7,16 +7,6 @@ import stdiomask
 from Blockchain import Wallet
 from Model import insertData, getData, checkData
 
-def handle_receive(client):
-    transfer_str('user, 2')
-    while(True):
-        response = client.recv(4096)
-        if response:
-            print(f"[*] Message from node: {response}")
-
-def transfer_str(client, ts):
-    client.send(ts.encode())
-
 # 登入頁面 回傳userinfo
 def login():
     print('------- LOGIN -------')
@@ -83,23 +73,38 @@ def system_manager_page(IPserver_host, IPserver_port, user_info):
         print('請輸入發行量: ', end='')
         cur_value = int(input())
         com_wallet_addr, com_private_key = Wallet.generate_address() # 建立社區錢包地址
-        # -- 加密社區私鑰
+        timestamp = int(time.time()) 
+        Wallet.encryption_comm_privatekey(com_private_key, timestamp, create_list[ans-1]['community']) # 加密社區私鑰
         insertData.insert_community(create_list[ans-1]['community'], com_wallet_addr, com_private_key)
         target_info = get_ip_issue_money(IPserver_host, IPserver_port, 'issue_money') # 告知索引伺服器 要創建社區貨幣
         record_info = {
             'currency_name': create_list[ans-1]['currency_name'],
             'currency_value': cur_value, 
             'circulation': float(create_list[ans-1]['circulation']), 
-            'community': create_list[ans-1]['community']
+            'community': create_list[ans-1]['community'],
+            'timestamp': timestamp
             }
         get_issue_money_result(target_info['IP'], target_info['Port_number'], 'issue_money', record_info) # 告知主節點 要發行社區貨幣
         # -- 移除創建社區清單
+        sender = getData.taken_plat_address()
+        receiver = getData.taken_community_address(create_list[ans-1]['community'])
+        amounts = cur_value
+        msg = '創建社區貨幣'
+        community = create_list[ans-1]['community']
+        transmsg = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community, 'password': user_info['密碼'], 'account': user_info['帳號']}
+        message = {"identity": "user", "request": "transaction"}
+        target_info = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
+        get_system_transaction_result(target_info['IP'], target_info['Port_number'], message, transmsg) # 轉帳給社區帳戶
+    
     elif ans == 2:
         sys_pass = input('請輸入平台密碼: ')
-        # -- 檢查平台密碼是否正確
-        sys_addr = getData.taken_plat_address() # 取平台錢包地址
-        target_info = get_ip_getsysbalance(IPserver_host, IPserver_port, 'get_system_balance') # 告知索引伺服器 要查詢平台餘額
-        get_sys_balance_result(target_info['IP'], target_info['Port_number'], 'get_system_balance', sys_addr) # 告知主節點 要查詢平台餘額
+        issyspasscurrent = checkData.check_platform_password(sys_pass) # 檢查平台密碼是否正確
+        if issyspasscurrent == False:
+            print('密碼錯誤!')
+        elif issyspasscurrent:
+            sys_addr = getData.taken_plat_address() # 取平台錢包地址
+            target_info = get_ip_getsysbalance(IPserver_host, IPserver_port, 'get_system_balance') # 告知索引伺服器 要查詢平台餘額
+            get_sys_balance_result(target_info['IP'], target_info['Port_number'], 'get_system_balance', sys_addr) # 告知主節點 要查詢平台餘額
 
 # 告知索引伺服器 查詢資料請求
 def get_ip_getbalance(IPserver_host, IPserver_port, message):
@@ -240,6 +245,7 @@ def get_issue_money_result(target_host, target_port, message, record_info):
             'currency_value': record_info['currency_value'],
             'circulation ': record_info['circulation'] ,
             'community': record_info['community'],
+            'timestamp': record_info['timestamp']
         }
     nodeclient.send(pickle.dumps(message))
 
@@ -276,6 +282,30 @@ def get_sys_balance_result(target_host, target_port, message, sys_wallet_addr):
     user_addr = getData.taken_address(sys_wallet_addr) # 取使用者錢包地址
     message = {'account': user_addr}
     nodeclient.send(pickle.dumps(message))
+
+    response = nodeclient.recv(4096)
+    if response:
+        try:
+            parsed_message = pickle.loads(response)
+        except Exception:
+            print(f"{message} cannot be parsed")
+        result = parsed_message['result']
+        nodeclient.shutdown(2)
+        nodeclient.close()
+        print('[*] ',end='')
+        print(result)
+        print('connection close')
+        return result
+    return ''
+
+# 向目標主節點發送 發起交易(轉帳社區貨幣)請求
+def get_system_transaction_result(target_host, target_port, message, transmsg):
+    nodeclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    nodeclient.connect((target_host, target_port))
+    nodeclient.send(pickle.dumps(message))
+    time.sleep(0.5)
+    
+    nodeclient.send(pickle.dumps(transmsg))
 
     response = nodeclient.recv(4096)
     if response:
@@ -332,7 +362,7 @@ if __name__ == "__main__":
                         print('幣值請輸入數字!')
                 insertData.insert_Check_createcommunity(user_info['帳號'], community, currency_name, float(circulation)) # 申請創建社區
             elif str(command) == '2': # 加入社區
-                community_list = getData.get_community() # 取得社區清單
+                community_list = getData.take_community() # 取得社區清單
                 flag = 1
                 for com in community_list:
                     print(flag + '. ' + com)
@@ -354,7 +384,6 @@ if __name__ == "__main__":
         if issystemmanager == True: # 有加入社區 也是平台管理員
             ans = input('使用平台帳號嗎(y/n)?: ')
             if ans == 'y' or ans == 'Y':
-                print('平台管理員權限') 
                 print('平台管理員權限') 
                 system_manager_page(IPserver_host, IPserver_port, user_info) # 切換到平台管理者權限
             else:

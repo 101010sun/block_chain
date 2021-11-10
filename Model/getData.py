@@ -44,7 +44,6 @@ def taken_password(account):
 # 取得_此帳號的基本資料
 def taken_userinfo(account):
     myquery = {'account': account}
-    projectionFields = ['account']
     cursor = col_Information_user.find(myquery)
     data = [d for d in cursor]
     if data != list([]):
@@ -132,15 +131,45 @@ def taken_plat_address():
   else:
     return None
 
+# 取得_社區錢包地址
+def taken_community_address(community):
+  myquery = {'community': community}
+  projectionFields = ['wallet_address']
+  cursor = col_Community.find(myquery, projection = projectionFields)
+  data = [d for d in cursor]
+  walletaddress = data[0]['wallet_address']
+  if data != list([]):
+    return walletaddress
+  else:
+    return None
+
 # 取得_社區名單
 def take_community():
     cursor = col_Community.find()
     data = [d for d in cursor]
     return data
 
+# 取得_社區用戶名單
+def take_community():
+    cursor = col_Community_members.find()
+    data = [d for d in cursor]
+    return data
+
 # 取得_創建社區審查清單
 def take_create_community():
     cursor = col_Check_createcommunity.find()
+    data = [d for d in cursor]
+    return data
+
+# 取得_社區用戶審核名單
+def take_create_community():
+    cursor = col_Check_community_user.find()
+    data = [d for d in cursor]
+    return data
+
+# 取得_社區管理員審核名單
+def take_create_community():
+    cursor =  col_Check_community_manager.find()
     data = [d for d in cursor]
     return data
 

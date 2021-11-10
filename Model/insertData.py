@@ -1,9 +1,8 @@
 from pymongo import MongoClient
-import cryptocode
-from bson.objectid import ObjectId
+from Blockchain import Wallet
 import gridfs
 import numpy as np
-import cv2
+import cryptocode
 
 #local host
 conn = MongoClient()
@@ -106,20 +105,45 @@ def insert_Check_createcommunity(applicant_account, community, currency_name, ci
 
 # 新增_社區用戶名單
 def insert_Community_members(account,community,community_address,identity):
+    myquery = {'account': account}
+    cursor = col_Community_members.find(myquery)
+    data = [d for d in cursor]
+    if data == list([]):
+      data = {
+        'account': account,
+        'community': community, 
+        'community_address': community_address,
+        'identity': identity #('管理員'、'一般用戶')
+      }
+      col_Community_members.insert_one(data) 
+      return True  
+    else:
+      col_Community_members.update_many({"account": account}, {'$addToSet': {"community":{"$each" : community}, "community_address":{"$each" : community_address},"identity":{"$each" : identity}}})
+
+# 新增_平台管理者
+def insert_System_members(account):
+    cursor = col_System_members.find()
+    data = [d for d in cursor]
+    if data == list([]):
+      print('Please create system member first!')
+    else:
+      col_System_members.update_many({"system_wallet_address": 'system_wallet_address'}, {'$addToSet': {"account" :{"$each" :account}}})
+
+# 新增_平台管理者名單(創建)
+def system_members(account,platform_password,system_wallet_address,system_private_key):
+  e_platform_password = Wallet.encryption_id_card(platform_password)
+  e_system_private_key = Wallet.encryption_privatekey(system_private_key, platform_password) #傳入私鑰與明文密碼
+  cursor = col_System_members.find()
+  data = [d for d in cursor]
+  if data == list([]):
     data = {
       'account': account,
-      'community': community, 
-      'community_address': community_address,
-      'identity': identity #('管理員'、'一般用戶')
-    }
-    col_Community_members.insert_one(data)   
-
-# 新增_平台管理者名單
-def insert_System_members(account):
-    data = {
-      'account': account
+      'platform_password': e_platform_password,
+      'system_wallet_address': system_wallet_address,
+      'system_private_key': e_system_private_key
     }
     col_System_members.insert_one(data) 
+
 
 # 新增_照片檔案寫入資料庫
 def store_photo(name):
@@ -158,4 +182,6 @@ def insert_community(community, community_wallet_address, community_private_key)
 
 # ----test----
 # insert_System_members('10')
-insert_information_demand('10','system','test','test',10,'test')
+# system_members(['53'],'platform_password','system_wallet_address','system_private_key')
+# insert_System_members(['10'])
+  

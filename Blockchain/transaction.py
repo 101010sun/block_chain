@@ -1,7 +1,3 @@
-import time
-import hashlib
-import rsa
-import cryptocode
 
 class Transaction: 
     def __init__(self,sender,receiver,amounts,message,community):
