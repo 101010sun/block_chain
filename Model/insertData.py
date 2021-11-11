@@ -78,9 +78,10 @@ def insert_Photo(length,chunkSize,uploadDate,filename,metadata):
     col_Photo.insert_one(data)
 
 # 新增_社區管理員審核名單
-def insert_Check_community_manager(applicant_account,reason):
+def insert_Check_community_manager(applicant_account, apply_community, reason):
     data = {
       'applicant_account': applicant_account,
+      'apply_community': apply_community
     }
     col_Check_community_manager.insert_one(data)
 
@@ -113,7 +114,7 @@ def insert_Community_members(account,community,community_address,identity):
         'account': account,
         'community': community, 
         'community_address': community_address,
-        'identity': identity #('管理員'、'一般用戶')
+        'identity': identity # ('管理員'、'一般用戶')
       }
       col_Community_members.insert_one(data) 
       return True  

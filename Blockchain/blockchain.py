@@ -16,7 +16,7 @@ class BlockChain:
 
     #初始化一筆交易
     def initialize_transaction(self, sender, receiver, amount, fee, message):
-        if self.get_balance(sender) < amount + fee:
+        if self.get_balance(sender) < float(amount) + float(fee):
             print("Balance not enough!")
             return False
         new_transaction = transaction.Transaction(sender, receiver, amount, fee, message)

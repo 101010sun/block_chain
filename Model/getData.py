@@ -73,6 +73,14 @@ def taken_privatekey(account,password):
   else:
     return None
 
+# 取得_此帳號所加入的社區清單、身分
+def taken_comandid(account):
+  projectionFields = ['community', 'identity']
+  myquery = {'account': account}
+  cursor = col_Community_members.find(myquery, projectionFields = projectionFields)
+  data = [d for d in cursor]
+  return data
+
 # 取得_照片檔案
 def download_photo(name):
     data = db.fs.files.find_one({'filename':name})
@@ -90,7 +98,7 @@ def download_photo(name):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-# 取得_此帳號之需求資訊 ?
+# 取得_此帳號之需求資訊
 def taken_mysalelist(account):
   myquery = {'requester_account': account}
   cursor = col_Information_demand.find(myquery)
@@ -122,10 +130,10 @@ def taken_address(account):
 
 # 取得_平台錢包地址
 def taken_plat_address():
-  projectionFields = ['wallet_address']
+  projectionFields = ['system_wallet_address']
   cursor = col_System_members.find(projection = projectionFields)
   data = [d for d in cursor]
-  walletaddress = data[0]['wallet_address']
+  walletaddress = data[0]['system_wallet_address']
   if data != list([]):
     return walletaddress
   else:
@@ -134,10 +142,10 @@ def taken_plat_address():
 # 取得_社區錢包地址
 def taken_community_address(community):
   myquery = {'community': community}
-  projectionFields = ['wallet_address']
+  projectionFields = ['community_wallet_address']
   cursor = col_Community.find(myquery, projection = projectionFields)
   data = [d for d in cursor]
-  walletaddress = data[0]['wallet_address']
+  walletaddress = data[0]['community_wallet_address']
   if data != list([]):
     return walletaddress
   else:
@@ -150,10 +158,14 @@ def take_community():
     return data
 
 # 取得_社區用戶名單
-def take_community():
+def take_community_members(community):
     cursor = col_Community_members.find()
     data = [d for d in cursor]
-    return data
+    member = list([])
+    for d in data:
+      if community in d['community']:
+        member.append(d['account'])
+    return member
 
 # 取得_創建社區審查清單
 def take_create_community():
@@ -162,14 +174,16 @@ def take_create_community():
     return data
 
 # 取得_社區用戶審核名單
-def take_create_community():
-    cursor = col_Check_community_user.find()
+def take_community_member_apply(community):
+    myquery = {'apply_community': community}
+    cursor = col_Check_community_user.find(myquery)
     data = [d for d in cursor]
     return data
 
 # 取得_社區管理員審核名單
-def take_create_community():
-    cursor =  col_Check_community_manager.find()
+def take_community_manager_apply(community):
+    myquery = {'apply_community': community}
+    cursor =  col_Check_community_manager.find(myquery)
     data = [d for d in cursor]
     return data
 

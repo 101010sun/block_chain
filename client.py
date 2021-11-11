@@ -7,7 +7,7 @@ import stdiomask
 from Blockchain import Wallet
 from Model import insertData, getData, checkData
 
-# 登入頁面 回傳userinfo
+# 登入頁面，回傳userinfo
 def login():
     print('------- LOGIN -------')
     user_account = input('帳號      : ')
@@ -23,7 +23,7 @@ def login():
         print('登入失敗!')
         return dict({})
 
-# 註冊頁面 回傳userinfo
+# 註冊頁面，回傳userinfo
 def signup():
     print('------- SIGNUP (用戶資訊) -------')
     user_name = input('姓名      : ')
@@ -63,39 +63,46 @@ def system_manager_page(IPserver_host, IPserver_port, user_info):
     if ans == 1:
         create_list = getData.take_create_community() # 取創建社區審查清單
         print("審查創建社區清單")
-        flag = int(1)
-        for c in create_list: # 選擇要處理哪一個
-            print(str(flag) + '. ', end='')
-            print(c)
-            flag += 1
-        print('請選擇要處理哪一個申請單: ', end='')
-        ans = int(input())
-        print('請輸入發行量: ', end='')
-        cur_value = int(input())
-        com_wallet_addr, com_private_key = Wallet.generate_address() # 建立社區錢包地址
-        timestamp = int(time.time()) 
-        Wallet.encryption_comm_privatekey(com_private_key, timestamp, create_list[ans-1]['community']) # 加密社區私鑰
-        insertData.insert_community(create_list[ans-1]['community'], com_wallet_addr, com_private_key)
-        target_info = get_ip_issue_money(IPserver_host, IPserver_port, 'issue_money') # 告知索引伺服器 要創建社區貨幣
-        record_info = {
-            'currency_name': create_list[ans-1]['currency_name'],
-            'currency_value': cur_value, 
-            'circulation': float(create_list[ans-1]['circulation']), 
-            'community': create_list[ans-1]['community'],
-            'timestamp': timestamp
-            }
-        get_issue_money_result(target_info['IP'], target_info['Port_number'], 'issue_money', record_info) # 告知主節點 要發行社區貨幣
-        # -- 移除創建社區清單
-        sender = getData.taken_plat_address()
-        receiver = getData.taken_community_address(create_list[ans-1]['community'])
-        amounts = cur_value
-        msg = '創建社區貨幣'
-        community = create_list[ans-1]['community']
-        transmsg = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community, 'password': user_info['密碼'], 'account': user_info['帳號']}
-        message = {"identity": "user", "request": "transaction"}
-        target_info = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
-        get_system_transaction_result(target_info['IP'], target_info['Port_number'], message, transmsg) # 轉帳給社區帳戶
-    
+        if create_list != []:
+            flag = int(1)
+            for c in create_list: # 選擇要處理哪一個
+                print(str(flag) + '. ', end='')
+                print(c)
+                flag += 1
+            print('請選擇要處理哪一個申請單: ', end='')
+            ans = int(input())
+            print('請輸入發行量: ', end='')
+            cur_value = int(input())
+            com_wallet_addr, com_private_key = Wallet.generate_address() # 建立社區錢包地址
+            timestamp = int(time.time()) 
+            Wallet.encryption_comm_privatekey(com_private_key, timestamp, create_list[ans-1]['community']) # 加密社區私鑰
+            insertData.insert_community(create_list[ans-1]['community'], com_wallet_addr, com_private_key)
+            message = {"identity": "user", "request": "issue_money"}
+            target_info = get_ip_issue_money(IPserver_host, IPserver_port, message) # 告知索引伺服器 要創建社區貨幣
+            record_info = {
+                'currency_name': create_list[ans-1]['currency_name'],
+                'currency_value': cur_value, 
+                'circulation': float(create_list[ans-1]['circulation']), 
+                'community': create_list[ans-1]['community'],
+                'timestamp': timestamp
+                }
+            message['request'] = 'issue_money'
+            get_issue_money_result(target_info['IP'], target_info['Port_number'], message, record_info) # 告知主節點 要發行社區貨幣
+            # -- 移除創建社區清單
+            sender = getData.taken_plat_address()
+            receiver = getData.taken_community_address(create_list[ans-1]['community'])
+            amounts = cur_value
+            msg = '創建社區貨幣'
+            community = create_list[ans-1]['community']
+            transmsg = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community, 'password': user_info['密碼'], 'account': user_info['帳號']}
+            # -- 簽署交易
+            # -- 此transaction要與一般transaction不同
+            message = {"identity": "user", "request": "transaction"}
+            target_info = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
+            get_system_transaction_result(target_info['IP'], target_info['Port_number'], message, transmsg) # 轉帳給社區帳戶
+        else:
+            print('目前無社區申請')
+
     elif ans == 2:
         sys_pass = input('請輸入平台密碼: ')
         issyspasscurrent = checkData.check_platform_password(sys_pass) # 檢查平台密碼是否正確
@@ -103,8 +110,85 @@ def system_manager_page(IPserver_host, IPserver_port, user_info):
             print('密碼錯誤!')
         elif issyspasscurrent:
             sys_addr = getData.taken_plat_address() # 取平台錢包地址
-            target_info = get_ip_getsysbalance(IPserver_host, IPserver_port, 'get_system_balance') # 告知索引伺服器 要查詢平台餘額
-            get_sys_balance_result(target_info['IP'], target_info['Port_number'], 'get_system_balance', sys_addr) # 告知主節點 要查詢平台餘額
+            message = {"identity": "user", "request": "get_system_balance"}
+            target_info = get_ip_getsysbalance(IPserver_host, IPserver_port, message) # 告知索引伺服器 要查詢平台餘額
+            message['request'] = 'get_system_balance'
+            get_sys_balance_result(target_info['IP'], target_info['Port_number'], message, sys_addr) # 告知主節點 要查詢平台餘額
+
+# 社區管理員頁面
+def community_manager_page(IPserver_host, IPserver_port, user_info, this_community):
+    print("1. 移除社區成員")
+    print("2. 審核社區成員申請名單")
+    print("3. 基本功能")
+    ans = int(input("Ans: "))
+    if ans == 1: # 移除社區成員名單
+        member_list = getData.take_community_members(this_community)
+        if member_list != []:
+            flag = 1
+            for m in member_list:
+                print(flag, end='. ')
+                print(m)
+            ans = int(input('請輸入欲移除的社區成員: '))
+            # -- 移除社區成員
+            # -- 通知被移除的成員
+            # -- 用戶領取帳戶餘額
+    elif ans == 2: # 審核社區成員申請名單
+        print('1. 審核社區管理員申請')
+        print('2. 審核一般用戶申請')
+        ans = int(input('請輸入欲審查的名單: '))
+        if ans == 1: # 審核社區管理員審核名單
+            apply_list = getData.take_community_manager_apply(this_community)
+            if apply_list != []:
+                flag = 1
+                for a in apply_list:
+                    print(flag, end='. ')
+                    print(a)
+                ans = int(input('請選擇要處理哪一個申請: '))
+                # -- 將此申請帳戶身分更新成為管理員
+            else:
+                print('目前此項目無申請')
+        elif ans == 2: # 審核社區一般用戶審核名單
+            apply_list = getData.take_community_member_apply(this_community)
+            if apply_list != []:
+                flag = 1
+                for a in apply_list:
+                    print(flag, end='. ')
+                ans = int(input('請選擇要處理哪一個申請: '))
+                insertData.insert_Community_members(apply_list[ans-1]['applicant_account'], this_community, apply_list[ans-1]['apply_address'], '一般用戶')
+            else:
+                print('目前此項目無申請')
+    elif ans == 3: # 基本功能
+        print('基本功能頁面')
+        community_member_page(IPserver_host, IPserver_port, user_info, this_community)
+
+# 一般用戶頁面
+def community_member_page(IPserver_host, IPserver_port, user_info, this_community):
+    command_dict = {"1": "get_balance", "2": "transaction", "3": "exit"}
+    for key, value in command_dict.items():
+        print(key,end='')
+        print(': ',end='')
+        print(value)
+    command = input("Command: ")
+    message = {"identity": "user", "request": command_dict[str(command)]}
+    if command_dict[str(command)] == "get_balance":
+        rec = get_ip_getbalance(IPserver_host, IPserver_port, message)
+        if rec != {}:
+            target_host = rec['IP']
+            target_port = rec['Port_number']
+            result = get_balance_result(target_host, target_port, message, user_info)
+        else: print('[*] Get Balance Node Fail!')
+    
+    elif command_dict[str(command)] == "transaction":
+        rec = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
+        if rec != {}:
+            target_host = rec['IP']
+            target_port = rec['Port_number']
+            result = get_transaction_result(target_host, target_port, message, user_info)
+        else:
+            print('[*] Trancation Fail!')
+
+    elif command_dict[str(command)] == "exit":
+        print('Bye Bye ~')
 
 # 告知索引伺服器 查詢資料請求
 def get_ip_getbalance(IPserver_host, IPserver_port, message):
@@ -264,11 +348,11 @@ def get_ip_getsysbalance(IPserver_host, IPserver_port, message):
         target_host = parsed_message['IP']
         target_port = int(parsed_message['Port_number'])
         tmp = {'IP': target_host, 'Port_number': target_port}
-        indexclient.shutdown(2)
-        indexclient.close()
         print('[*] ',end='')
         print(tmp)
         print('connection close')
+        indexclient.shutdown(2)
+        indexclient.close()
         return tmp
     return {}
 
@@ -279,8 +363,7 @@ def get_sys_balance_result(target_host, target_port, message, sys_wallet_addr):
     nodeclient.send(pickle.dumps(message))
     time.sleep(0.5)
 
-    user_addr = getData.taken_address(sys_wallet_addr) # 取使用者錢包地址
-    message = {'account': user_addr}
+    message = {'account': sys_wallet_addr}
     nodeclient.send(pickle.dumps(message))
 
     response = nodeclient.recv(4096)
@@ -327,7 +410,6 @@ if __name__ == "__main__":
     IPserver_port = int(sys.argv[1])
     target_host = ""
     target_port = int(0)
-    command_dict = {"1": "get_balance", "2": "transaction", "3": "exit"}
     user_info = {}
     while(True):
         print('LOGIN or SIGN_UP (1/2)?: ', end='') # 登入或註冊
@@ -339,88 +421,60 @@ if __name__ == "__main__":
             user_info = signup() # 註冊
             if(user_info != dict({})): break
     
-    isjoincommunnity = checkData.check_has_community(user_info['帳號']) # 是否已加入社區
     issystemmanager = checkData.check_is_system_manage(user_info['帳號']) # 檢查是否為平台管理者
-    if isjoincommunnity == None: # 無加入社區
-        if issystemmanager == True: # 無社區 但為平台管理員
-            ans = input('使用平台帳號嗎(y/n)?: ')
-            if ans == 'y' or ans == 'Y':
-                print('平台管理員權限') 
-                system_manager_page(IPserver_host, IPserver_port, user_info) # 切換到平台管理者權限
-            else:
-                issystemmanager = False
-        if issystemmanager == False:
-            command = input("創建社區 or 加入社區 (1/2)?: ")
-            if str(command) == '1': # 創建社區
-                community = input('請輸入社區名稱: ')
-                currency_name = input('請輸入社區貨幣名稱: ')
-                while(True):
-                    circulation = input('請輸入幣值: ')
-                    if circulation.isdigit():
+    if issystemmanager == True: # 是否使用平台帳號
+        ans = input('使用平台帳號嗎(y/n)?: ')
+        if ans == 'y' or ans == 'Y':
+            print('平台管理員權限') 
+            system_manager_page(IPserver_host, IPserver_port, user_info) # 切換到平台管理者權限
+        else:
+            issystemmanager = False
+
+    isjoincommunnity = checkData.check_has_community(user_info['帳號']) # 是否已加入社區
+    if isjoincommunnity == None and issystemmanager == False: # 無加入社區
+        command = input("創建社區 or 加入社區 (1/2)?: ")
+        if str(command) == '1': # 創建社區
+            community = input('請輸入社區名稱: ')
+            currency_name = input('請輸入社區貨幣名稱: ')
+            while(True):
+                circulation = input('請輸入幣值: ')
+                if circulation.isdigit():
+                    break
+                else:
+                    print('幣值請輸入數字!')
+            insertData.insert_Check_createcommunity(user_info['帳號'], community, currency_name, float(circulation)) # 申請創建社區
+        elif str(command) == '2': # 加入社區
+            community_list = getData.take_community() # 取得社區清單
+            flag = 1
+            for com in community_list:
+                print(flag + '. ' + com)
+                flag += 1
+            while(True):
+                which_community = input("Answer: ")
+                if which_community.isdigit():
+                    if int(which_community) > flag or int(which_community) < flag:
+                        print("輸入超過大小了!")
+                    else:
                         break
-                    else:
-                        print('幣值請輸入數字!')
-                insertData.insert_Check_createcommunity(user_info['帳號'], community, currency_name, float(circulation)) # 申請創建社區
-            elif str(command) == '2': # 加入社區
-                community_list = getData.take_community() # 取得社區清單
-                flag = 1
-                for com in community_list:
-                    print(flag + '. ' + com)
-                    flag += 1
-                while(True):
-                    which_community = input("Answer: ")
-                    if which_community.isdigit():
-                        if int(which_community) > flag or int(which_community) < flag:
-                            print("輸入超過大小了!")
-                        else:
-                            break
-                    else:
-                        print('社區編號請輸入數字!')
-                apply_community = community_list[which_community-1]
-                apply_address = input("請輸入社區地址: ")
-                insertData.insert_Check_community_user(user_info['帳號'], apply_community, apply_address) # 申請加入社區清單
+                else:
+                    print('社區編號請輸入數字!')
+            apply_community = community_list[which_community-1]
+            apply_address = input("請輸入社區地址: ")
+            insertData.insert_Check_community_user(user_info['帳號'], apply_community, apply_address) # 申請加入社區清單
     
-    if isjoincommunnity != None: # 有加入社區
-        if issystemmanager == True: # 有加入社區 也是平台管理員
-            ans = input('使用平台帳號嗎(y/n)?: ')
-            if ans == 'y' or ans == 'Y':
-                print('平台管理員權限') 
-                system_manager_page(IPserver_host, IPserver_port, user_info) # 切換到平台管理者權限
-            else:
-                issystemmanager = False
-        # elif issystemmanager == False: # 只有加入社區
-            # --選擇要進入的社區頁面
-            # --社區管理員
-            # --一般用戶
+    elif isjoincommunnity != None and issystemmanager == False: # 有加入社區
+        comlist = getData.taken_comandid(user_info['帳號'])
+        flag = 1
+        for c in comlist:
+            print(flag, end='. ')
+            print(c)
+        ans = int(input('請選擇要進入哪個社區: ')) # 選擇要進入的社區頁面
+        if comlist[ans-1]['identity'] == '管理員':
+            print('社區管理員權限') 
+            community_manager_page(IPserver_host, IPserver_port, user_info, comlist[ans-1]['community'])
+        elif comlist[ans-1]['identity'] == '一般用戶':
+            print('一般用戶權限')
+            community_member_page(IPserver_host, IPserver_port, user_info, comlist[ans-1]['community'])
 
-        # while(True): # 基本功能
-        #     for key, value in command_dict.items():
-        #         print(key,end='')
-        #         print(': ',end='')
-        #         print(value)
-        #     command = input("Command: ")
-        #     if str(command) not in command_dict.keys():
-        #         print("Unknown command.")
-        #         continue
-        #     message = {"identity": "user", "request": command_dict[str(command)]}
-
-        #     if command_dict[str(command)] == "get_balance":
-        #         rec = get_ip_getbalance(IPserver_host, IPserver_port, message)
-        #         if rec != {}:
-        #             target_host = rec['IP']
-        #             target_port = rec['Port_number']
-        #             result = get_balance_result(target_host, target_port, message, user_info)
-        #         else: print('[*] Get Balance Node Fail!')
-            
-        #     elif command_dict[str(command)] == "transaction":
-        #         rec = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
-        #         if rec != {}:
-        #             target_host = rec['IP']
-        #             target_port = rec['Port_number']
-        #             result = get_transaction_result(target_host, target_port, message, user_info)
-        #         else:
-        #             print('[*] Trancation Fail!')
-
-        #     elif command_dict[str(command)] == "exit":
-        #         break
+        
 
