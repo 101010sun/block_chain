@@ -57,58 +57,61 @@ def signup():
 
 # 平台管理員頁面
 def system_manager_page(IPserver_host, IPserver_port, user_info):
-    print("1. 查創建社區清單")
-    print("2. 查詢平台錢包餘額")
-    ans = int(input('Ans: '))
-    if ans == 1:
-        create_list = getData.take_create_community() # 取創建社區審查清單
-        print("審查創建社區清單")
-        if create_list != []:
-            flag = int(1)
-            for c in create_list: # 選擇要處理哪一個
-                print(str(flag) + '. ', end='')
-                print(c)
-                flag += 1
-            print('請選擇要處理哪一個申請單: ', end='')
-            ans = int(input())
-            print('請輸入發行量: ', end='')
-            cur_value = int(input())
-            com_wallet_addr, com_private_key = Wallet.generate_address() # 建立社區錢包地址
-            timestamp = int(time.time()) 
-            Wallet.encryption_comm_privatekey(com_private_key, timestamp, create_list[ans-1]['community']) # 加密社區私鑰
-            insertData.insert_community(create_list[ans-1]['community'], com_wallet_addr, com_private_key)
-            message = {"identity": "user", "request": "issue_money"}
-            target_info = get_ip_issue_money(IPserver_host, IPserver_port, message) # 告知索引伺服器 要創建社區貨幣
-            record_info = {
-                'currency_name': create_list[ans-1]['currency_name'],
-                'currency_value': cur_value, 
-                'circulation': float(create_list[ans-1]['circulation']), 
-                'community': create_list[ans-1]['community'],
-                'timestamp': timestamp
-                }
-            message['request'] = 'issue_money'
-            get_issue_money_result(target_info['IP'], target_info['Port_number'], message, record_info) # 告知主節點 要發行社區貨幣
-            # -- 移除創建社區清單
-            sender = getData.taken_plat_address()
-            receiver = getData.taken_community_address(create_list[ans-1]['community'])
-            amounts = cur_value
-            msg = '創建社區貨幣'
-            community = create_list[ans-1]['community']
-            transmsg = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community, 'password': user_info['密碼'], 'account': user_info['帳號']}
-            # -- 簽署交易
-            # -- 此transaction要與一般transaction不同
-            message = {"identity": "user", "request": "transaction"}
-            target_info = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
-            get_system_transaction_result(target_info['IP'], target_info['Port_number'], message, transmsg) # 轉帳給社區帳戶
-        else:
-            print('目前無社區申請')
+    sys_pass = input('請輸入平台密碼: ')
+    issyspasscurrent = checkData.check_platform_password(sys_pass)
+    if issyspasscurrent == False:
+        print('密碼錯誤!')
+    elif issyspasscurrent:
+        print("1. 查創建社區清單")
+        print("2. 查詢平台錢包餘額")
+        ans = int(input('Ans: '))
+        if ans == 1:
+            create_list = getData.take_create_community() # 取創建社區審查清單
+            print("審查創建社區清單")
+            if create_list != []:
+                flag = int(1)
+                for c in create_list: # 選擇要處理哪一個
+                    print(str(flag) + '. ', end='')
+                    print(c)
+                    flag += 1
+                print('請選擇要處理哪一個申請單: ', end='')
+                ans = int(input())
+                print('請輸入發行量: ', end='')
+                cur_value = int(input())
+                com_wallet_addr, com_private_key = Wallet.generate_address() # 建立社區錢包地址
+                timestamp = int(time.time()) 
+                Wallet.encryption_comm_privatekey(com_private_key, timestamp, create_list[ans-1]['community']) # 加密社區私鑰
+                insertData.insert_community(create_list[ans-1]['community'], com_wallet_addr, com_private_key)
+                message = {"identity": "user", "request": "issue_money"}
+                target_info = get_ip_issue_money(IPserver_host, IPserver_port, message) # 告知索引伺服器 要創建社區貨幣
+                record_info = {
+                    'currency_name': create_list[ans-1]['currency_name'],
+                    'currency_value': cur_value, 
+                    'circulation': float(create_list[ans-1]['circulation']), 
+                    'community': create_list[ans-1]['community'],
+                    'timestamp': timestamp
+                    }
+                message['request'] = 'issue_money'
+                get_issue_money_result(target_info['IP'], target_info['Port_number'], message, record_info) # 告知主節點 要發行社區貨幣
+                # -- 移除創建社區清單
+                sender = getData.taken_plat_address()
+                receiver = getData.taken_community_address(create_list[ans-1]['community'])
+                amounts = cur_value
+                msg = '創建社區貨幣'
+                community = create_list[ans-1]['community']
+                transmsg = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community, 'system_password': sys_pass, 'account': user_info['帳號']}
+                message = {"identity": "user", "request": "transaction"}
+                target_info = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
+                message['request'] = 'system_transaction'
+                get_system_transaction_result(target_info['IP'], target_info['Port_number'], message, transmsg) # 轉帳給社區帳戶
+                new_com_account = create_list[ans-1]['applicant_account']
+                community_address = str('test_addr')
+                identity = '管理員'
+                insertData.insert_Community_members(new_com_account, community, community_address, identity)
+            else:
+                print('目前無社區申請')
 
-    elif ans == 2:
-        sys_pass = input('請輸入平台密碼: ')
-        issyspasscurrent = checkData.check_platform_password(sys_pass) # 檢查平台密碼是否正確
-        if issyspasscurrent == False:
-            print('密碼錯誤!')
-        elif issyspasscurrent:
+        elif ans == 2:
             sys_addr = getData.taken_plat_address() # 取平台錢包地址
             message = {"identity": "user", "request": "get_system_balance"}
             target_info = get_ip_getsysbalance(IPserver_host, IPserver_port, message) # 告知索引伺服器 要查詢平台餘額
@@ -327,7 +330,7 @@ def get_issue_money_result(target_host, target_port, message, record_info):
     message = {
             'currency_name': record_info['currency_name'],
             'currency_value': record_info['currency_value'],
-            'circulation ': record_info['circulation'] ,
+            'circulation': record_info['circulation'] ,
             'community': record_info['community'],
             'timestamp': record_info['timestamp']
         }

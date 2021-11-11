@@ -73,6 +73,18 @@ def taken_privatekey(account,password):
   else:
     return None
 
+# 取得_平台的私鑰
+def taken_system_privatekey(password):
+  projectionFields = ['system_private_key']
+  cursor = col_System_members.find(projection = projectionFields)
+  data = [d for d in cursor]
+  e_private_key = data[0]['system_private_key']
+  sys_private_key = Wallet.decryption_privatekey(e_private_key, password)
+  if data != []:
+    return sys_private_key
+  else:
+    return None
+
 # 取得_此帳號所加入的社區清單、身分
 def taken_comandid(account):
   projectionFields = ['community', 'identity']
