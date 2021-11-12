@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from Blockchain import Wallet
+from Model import getData
 import gridfs
 import numpy as np
 import cryptocode
@@ -112,9 +113,9 @@ def insert_Community_members(account,community,community_address,identity):
     if data == list([]):
       data = {
         'account': account,
-        'community': community, 
-        'community_address': community_address,
-        'identity': identity # ('管理員'、'一般用戶')
+        'community': [community], 
+        'community_address': [community_address],
+        'identity': [identity] # ('管理員'、'一般用戶')
       }
       col_Community_members.insert_one(data) 
       return True  
@@ -128,17 +129,19 @@ def insert_System_members(account):
     if data == list([]):
       print('Please create system member first!')
     else:
-      col_System_members.update_many({"system_wallet_address": 'system_wallet_address'}, {'$addToSet': {"account" :{"$each" :account}}})
+      system_wallet_address = getData.taken_plat_address()
+      col_System_members.update_many({"system_wallet_address": system_wallet_address}, {'$addToSet': {"account" :{"$each" :account}}})
 
 # 新增_平台管理者名單(創建)
-def system_members(account,platform_password,system_wallet_address,system_private_key):
+def system_members(account,platform_password):
+  system_wallet_address,system_private_key = Wallet.generate_address()
   e_platform_password = Wallet.encryption_id_card(platform_password)
   e_system_private_key = Wallet.encryption_privatekey(system_private_key, platform_password) #傳入私鑰與明文密碼
   cursor = col_System_members.find()
   data = [d for d in cursor]
   if data == list([]):
     data = {
-      'account': account,
+      'account': [account],
       'platform_password': e_platform_password,
       'system_wallet_address': system_wallet_address,
       'system_private_key': e_system_private_key

@@ -34,13 +34,13 @@ def signup():
     user_phone = input('電話      : ')
     user_address = input('地址      : ')
     e_id = Wallet.encryption_id_card(user_id)
-    check_id = checkData.Check_id(e_id)
+    check_id = checkData.check_id(e_id)
     if check_id:
         while(True):
             print('------- SIGNUP (建立帳戶) -------')
             user_account = input('帳號      : ')
             user_password = stdiomask.getpass(prompt='密碼      : ', mask='*')
-            check_account = checkData.Check_account(user_account)
+            check_account = checkData.check_account(user_account)
             if check_account:
                 walletaddress, private_key = Wallet.generate_address() # 產生公私鑰地址
                 public_key = walletaddress

@@ -17,12 +17,15 @@ class BlockChain:
     #初始化一筆交易
     def initialize_transaction(self,sender,receiver,amounts,message,community):
         fee = amounts * 0.01
-        if self.get_balance(sender) < float(amounts) + float(fee):
-            print("Balance not enough!")
-            return False
-        new_transaction = transaction.Transaction(sender,receiver,amounts,message,community)
-        return new_transaction
-
+        allbalance = self.get_balance(sender)
+        if community in allbalance.keys():
+            if allbalance[community] < float(amounts) + float(fee):
+                print("Balance not enough!")
+                return False
+            new_transaction = transaction.Transaction(sender,receiver,amounts,message,community)
+            return new_transaction
+        return None
+        
     # 產生創世塊
     def create_genesis_block(self, nodeaddr):
         print("Create genesis block...")
