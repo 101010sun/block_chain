@@ -266,7 +266,7 @@ class Node:
                         print(f"{message} cannot be parsed")
                     print(f"[*] Received: {parsed_message}")
                     if self.block_count:
-                        a_transaction = self.blockchain.initialize_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
+                        a_transaction = self.blockchain.initialize_system_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
                         sys_private = getData.taken_system_privatekey(parsed_message['system_password']) # 取平台私鑰
                         signature = self.blockchain.sign_transaction(a_transaction, sys_private) # 簽署交易
                         self.blockchain.add_transaction_to_pool(a_transaction, signature) # 將交易資料放入交易池

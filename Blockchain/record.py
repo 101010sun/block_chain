@@ -6,8 +6,8 @@ import cryptocode
 class Record: 
     def __init__(self,currency_name, currency_value, circulation, community, timestamp):
         self.currency_name = currency_name
-        self.currency_value = currency_value 
-        self.circulation = circulation
+        self.currency_value = float(currency_value) 
+        self.circulation = int(circulation)
         self.community = community
         self.timestamp = timestamp
 

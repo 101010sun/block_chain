@@ -133,7 +133,7 @@ def insert_System_members(account):
       col_System_members.update_many({"system_wallet_address": system_wallet_address}, {'$addToSet': {"account" :{"$each" :account}}})
 
 # 新增_平台管理者名單(創建)
-def system_members(account,platform_password):
+def create_system_members(account,platform_password):
   system_wallet_address,system_private_key = Wallet.generate_address()
   e_platform_password = Wallet.encryption_id_card(platform_password)
   e_system_private_key = Wallet.encryption_privatekey(system_private_key, platform_password) #傳入私鑰與明文密碼

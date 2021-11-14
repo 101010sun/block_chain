@@ -25,7 +25,19 @@ class BlockChain:
             new_transaction = transaction.Transaction(sender,receiver,amounts,message,community)
             return new_transaction
         return None
-        
+
+    #初始化一筆系統交易
+    def initialize_system_transaction(self,sender,receiver,amounts,message,community):
+        fee = amounts * 0.01
+        allbalance = self.get_system_balance(sender)
+        if community in allbalance.keys():
+            if allbalance[community] < float(amounts) + float(fee):
+                print("Balance not enough!")
+                return False
+            new_transaction = transaction.Transaction(sender,receiver,amounts,message,community)
+            return new_transaction
+        return None
+
     # 產生創世塊
     def create_genesis_block(self, nodeaddr):
         print("Create genesis block...")
@@ -95,7 +107,7 @@ class BlockChain:
                     platform_balance[transaction.community] += transaction.amounts
 
         for record in self.recordchain:
-            platform_balance[record.community] += record.circulation
+            platform_balance[record.community] += int(record.circulation)
         return platform_balance
 
     # 確認雜湊值是否正確
@@ -124,7 +136,7 @@ class BlockChain:
         return str(transaction_dict)
 
     # 將創建社區貨幣紀錄轉換成字串(dict)
-    def transaction_to_string(self, record): #transaction to string
+    def record_to_string(self, record): #transaction to string
         record_dict = {
             'currencyname': str(record.currencyname),
             'currencyvalue': float(record.currencyvalue),
@@ -187,95 +199,3 @@ class BlockChain:
             else:
                 print(f"[**] Received block error: Hash not matched by diff!")
             return False
-
-      ###Wallet      
-    
-
-
-
-
-    
-    # 產生錢包地址
-    # return: 錢包地址、?私鑰
-    def generate_address(self):
-        public, private = rsa.newkeys(512) #rsa 
-        #PublicKey(8110652037018951423415384068343669562112781192066917099227440355062887030082561641925872544251324619419460659259927466333657527066898085681936273858467987, 65537)
-        #PrivatKey
-        #public key
-        public_key = public.save_pkcs1()
-        with open('public.pem','wb')as f:
-            f.write(public_key)
-        #private key
-        private_key = private.save_pkcs1()
-        with open('private.pem','wb')as f:
-            f.write(private_key)
-        #print(str(public_key))
-        
-        #過濾地址
-        address = str(public_key).replace('\\n','')
-        address = address.replace("b'-----BEGIN RSA PUBLIC KEY-----", '')
-        address = address.replace("-----END RSA PUBLIC KEY-----'", '')
-        address = address.replace(' ', '')
-        #過濾私鑰
-        private_key = str(private_key).replace('\\n','') 
-        private_key = private_key.replace("b'-----BEGIN RSA PRIVATE KEY-----", '')
-        private_key = private_key.replace("-----END RSA PRIVATE KEY-----'", '')
-        private_key = private_key.replace(' ', '')
-        return address, private_key
-
-    # 加密明文密碼
-    # return: 加密密碼
-    def encryption_password(self,password, e_id_card):
-        s = hashlib.sha256()
-        s.update(
-            (
-            str(password)
-            +str(e_id_card)
-            ).encode("utf-8")
-        ) #Update hash SHA256
-        e_password = s.hexdigest() #get hash
-        return e_password
-
-    # 加密身分證字號
-    # return: 加密身分證字號
-    def encryption_id_card(self,id_card):
-        s = hashlib.sha256()
-        s.update(
-            (
-            str(id_card)
-            ).encode("utf-8")
-        ) #Update hash SHA256
-        e_id_card = s.hexdigest() #get hash
-        return e_id_card
-
-    # 加密私鑰
-    def encryption_privatekey(self,private_key, password):
-        e_private_key = cryptocode.encrypt(str(private_key),str(password))
-        return e_private_key
-
-    # 解密私鑰
-    # return: 私鑰
-    def decryption_privatekey(self,e_private_key, password):
-        private_key = cryptocode.decrypt(str(e_private_key),str(password))
-        return private_key
-
-
-    #測試    
-    def start(self):
-        address, private = self.generate_address()
-        self.create_genesis_block('me')
-        
-        while(True):           
-            # Step1: initialize a transaction
-            transaction = self.initialize_transaction(address, 'test123', 0, 0, 'Test')
-            if transaction:
-                # Step2: Sign your transaction
-                signature = self.sign_transaction(transaction, private)
-                # Step3: Send it to blockchain
-                self.add_transaction_to_pool(transaction, signature)
-            self.node_block(address)
-            print(self.get_balance(address))
-            
-
-# BC1 = BlockChain()
-# BC1.start()
