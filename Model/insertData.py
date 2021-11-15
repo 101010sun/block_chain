@@ -120,7 +120,7 @@ def insert_Community_members(account,community,community_address,identity):
       col_Community_members.insert_one(data) 
       return True  
     else:
-      col_Community_members.update_many({"account": account}, {'$addToSet': {"community":{"$each" : community}, "community_address":{"$each" : community_address},"identity":{"$each" : identity}}})
+      col_Community_members.update_many({"account": account}, {'$addToSet': {"community":{"$each" : [community]}, "community_address":{"$each" : [community_address]},"identity":{"$each" : [identity]}}})
 
 # 新增_平台管理者
 def insert_System_members(account):
