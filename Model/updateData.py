@@ -36,5 +36,17 @@ def modify_userinfo(account,newname,newsex,newbirth,newemail,newphone):
     col_Information_user.update_many({"account": account}, {'$set': {"name":newname,"sex": newsex,"birth": newbirth,"email": newemail,"phone": newphone}}, upsert=True)
     return True
 
+#移除_創建社區審核
+def remove_Check_createcommunity(community):
+    col_Check_createcommunity.delete_many({"community" : community})
+  
+#移除_社區用戶審核
+def remove_Check_community_user(account,community):
+    col_Check_community_user.delete_many({"applicant_account" : account,"apply_community" : community})
+
+#移除_社區管理員審核
+def remove_Check_community_manager(account,community):
+    col_Check_community_manager.delete_many({"applicant_account" : account,"apply_community" : community})
+
 # ----test----
 #col.update_many({"name": "bob"}, {'$set': {"name":"BOB","id": "con_xxx_bob-iP-xxx"}}, upsert=True)
