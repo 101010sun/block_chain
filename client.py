@@ -86,8 +86,8 @@ def system_manager_page(IPserver_host, IPserver_port, user_info):
                 target_info = get_ip_issue_money(IPserver_host, IPserver_port, message) # 告知索引伺服器 要創建社區貨幣
                 record_info = {
                     'currency_name': create_list[ans-1]['currency_name'],
-                    'currency_value': cur_value, 
-                    'circulation': float(create_list[ans-1]['circulation']), 
+                    'currency_value': float(create_list[ans-1]['currency_value']), 
+                    'circulation': float(cur_value), 
                     'community': create_list[ans-1]['community'],
                     'timestamp': timestamp
                     }
@@ -99,7 +99,7 @@ def system_manager_page(IPserver_host, IPserver_port, user_info):
                 amounts = cur_value
                 msg = '創建社區貨幣'
                 community = create_list[ans-1]['community']
-                transmsg = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community, 'system_password': sys_pass, 'account': user_info['帳號']}
+                transmsg = {'sender': sender, 'receiver': receiver, 'amounts': (amounts-amounts*0.01), 'msg': msg, 'community': community, 'system_password': sys_pass, 'account': user_info['帳號']}
                 message = {"identity": "user", "request": "transaction"}
                 target_info = get_ip_transaction(IPserver_host, IPserver_port, message, user_info)
                 message['request'] = 'system_transaction'
@@ -115,6 +115,8 @@ def system_manager_page(IPserver_host, IPserver_port, user_info):
             sys_addr = getData.taken_plat_address() # 取平台錢包地址
             message = {"identity": "user", "request": "get_system_balance"}
             target_info = get_ip_getsysbalance(IPserver_host, IPserver_port, message) # 告知索引伺服器 要查詢平台餘額
+            print('[*] ', end='')
+            print(target_info)
             message['request'] = 'get_system_balance'
             get_sys_balance_result(target_info['IP'], target_info['Port_number'], message, sys_addr) # 告知主節點 要查詢平台餘額
 

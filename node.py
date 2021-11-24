@@ -75,8 +75,7 @@ class Node:
             elif request == 'done_block':
                 time.sleep(1.5)
                 message = {"IP": self.socket_host, "Port_number": self.socket_port} # 傳送自己的節點IP、Port number
-                flag = s.send(pickle.dumps(message))
-                print('[*] flag send', flag)
+                s.send(pickle.dumps(message))
                 response = s.recv(4096)
                 if response:
                     try:
@@ -94,6 +93,11 @@ class Node:
 
                 con_index_donormal = threading.Thread(target=self.connect_to_index, args=('done_normal',))
                 con_index_donormal.start()
+
+            elif request == 'done_middle':
+                time.sleep(0.5)
+                message = {"IP": self.socket_host, "Port_number": self.socket_port}
+                s.send(pickle.dumps(message))
 
             elif request == 'done_hard':
                 time.sleep(0.5)
@@ -248,7 +252,7 @@ class Node:
                     except Exception:
                         print(f"{message} cannot be parsed")
                     print(f"[*] Received: {parsed_message}")
-                    if self.block_count:
+                    if self.blocking:
                         a_transaction = self.blockchain.initialize_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
                         private = getData.taken_privatekey(parsed_message['account'], parsed_message['password']) # 取sender私鑰
                         signature = self.blockchain.sign_transaction(a_transaction, private) # 簽署交易
@@ -265,7 +269,7 @@ class Node:
                     except Exception:
                         print(f"{message} cannot be parsed")
                     print(f"[*] Received: {parsed_message}")
-                    if self.block_count:
+                    if self.blocking:
                         a_transaction = self.blockchain.initialize_system_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
                         sys_private = getData.taken_system_privatekey(parsed_message['system_password']) # 取平台私鑰
                         signature = self.blockchain.sign_transaction(a_transaction, sys_private) # 簽署交易

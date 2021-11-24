@@ -32,6 +32,8 @@ class BlockChain:
         allbalance = self.get_system_balance(sender)
         if community in allbalance.keys():
             if allbalance[community] < float(amounts) + float(fee):
+                print("[*] ", end='')
+                print(allbalance[community])
                 print("Balance not enough!")
                 return False
             new_transaction = transaction.Transaction(sender,receiver,amounts,message,community)
@@ -99,7 +101,10 @@ class BlockChain:
         # 計算交易手續費
         for block in self.chain:
             for transaction in block.transactions:
-                platform_balance[transaction.community] += transaction.fee
+                if transaction.community in platform_balance.keys():
+                    platform_balance[transaction.community] += transaction.fee
+                else:
+                    platform_balance[transaction.community] = transaction.fee
                 if transaction.sender == plat_address:
                     platform_balance[transaction.community] -= transaction.amounts
                     platform_balance[transaction.community] -= transaction.fee
@@ -107,7 +112,10 @@ class BlockChain:
                     platform_balance[transaction.community] += transaction.amounts
 
         for record in self.recordchain:
-            platform_balance[record.community] += int(record.circulation)
+            if record.community in platform_balance.keys():
+                platform_balance[record.community] += int(record.circulation)
+            else:
+                platform_balance[record.community] = int(record.circulation)
         return platform_balance
 
     # 確認雜湊值是否正確
@@ -163,9 +171,18 @@ class BlockChain:
         public_key += '\n-----END RSA PUBLIC KEY-----\n'
         public_key_pkcs = rsa.PublicKey.load_pkcs1(public_key.encode('utf-8'))
         transaction_str = self.transaction_to_string(transaction)
-        if transaction.fee + transaction.amounts > self.get_balance(transaction.sender):
-            print("Balance not enough!")
+        system_addr = getData.taken_plat_address()
+        if transaction.sender == system_addr:
+            sender_balance = self.get_system_balance(transaction.sender)
+        else:
+            sender_balance = self.get_balance(transaction.sender)
+        if transaction.community not in sender_balance.keys():
+            print("No this community dollars")
             return False
+        else:
+            if transaction.fee + transaction.amounts > sender_balance[transaction.community]:
+                print("Balance not enough!")
+                return False
         try:
             # 驗證發送者
             rsa.verify(transaction_str.encode('utf-8'), signature, public_key_pkcs)

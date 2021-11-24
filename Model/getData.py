@@ -89,7 +89,7 @@ def taken_system_privatekey(password):
 def taken_comandid(account):
   projectionFields = ['community', 'identity']
   myquery = {'account': account}
-  cursor = col_Community_members.find(myquery, projectionFields = projectionFields)
+  cursor = col_Community_members.find(myquery, projection = projectionFields)
   data = [d for d in cursor]
   return data
 

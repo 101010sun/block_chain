@@ -139,6 +139,7 @@ class IPServer:
                         node_dict = self.get_free_node(1)
                         if node_dict != None: break
                     # send work_node loc to ask_node
+                    print(node_dict)
                     response = {"IP": node_dict['IP'], "Port_number": node_dict['Port_number']}
                     connection.send(pickle.dumps(response))
 
