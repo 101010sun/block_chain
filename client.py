@@ -135,8 +135,15 @@ def community_manager_page(IPserver_host, IPserver_port, user_info, this_communi
                 print(m)
             ans = int(input('請輸入欲移除的社區成員: '))
             # -- 移除社區成員
-            # -- 通知被移除的成員
-            # -- 用戶領取帳戶餘額
+            msg = 'get_balance' # 取用戶帳戶餘額
+            target_info = get_ip_getbalance(IPserver_host, IPserver_port, msg)
+            user_balance = get_balance_result(target_info['IP'], target_info['Port_number'], msg, user_info)
+            if this_community in user_balance.keys(): # 用戶領取帳戶餘額
+                msg = 'transaction'
+                target_info = get_ip_transaction(IPserver_host, IPserver_port, msg, user_info)
+                get_remove_transaction_result(target_info['IP'], target_info['Port_number'], msg, user_info, member_list[ans-1], user_balance[this_community], this_community)
+            else:
+                print('此欲移除的社區成員錢包無社區貨幣餘額')
     elif ans == 2: # 審核社區成員申請名單
         print('1. 審核社區管理員申請')
         print('2. 審核一般用戶申請')
@@ -281,6 +288,37 @@ def get_transaction_result(target_host, target_port, message, user_info):
     amounts = input('交易總額: ')
     msg = input('交易內容: ')
     community = input('社區幣: ')
+    message = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community, 'password': user_info['密碼'], 'account': user_info['帳號']}
+    nodeclient.send(pickle.dumps(message))
+
+    response = nodeclient.recv(4096)
+    if response:
+        try:
+            parsed_message = pickle.loads(response)
+        except Exception:
+            print(f"{message} cannot be parsed")
+        result = parsed_message['result']
+        nodeclient.shutdown(2)
+        nodeclient.close()
+        print('[*] ',end='')
+        print(result)
+        print('connection close')
+        return result
+    return ''
+
+# 向目標主節點發送 發起交易請求
+def get_remove_transaction_result(target_host, target_port, message, user_info, rec, amo, commun):
+    nodeclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    nodeclient.connect((target_host, target_port))
+    nodeclient.send(pickle.dumps(message))
+    time.sleep(0.5)
+    
+    sender = getData.taken_address(user_info['帳號'])
+    tmp_receiver = rec
+    receiver = getData.taken_address(tmp_receiver)
+    amounts = amo
+    msg = '兌現社區貨幣交易'
+    community = commun
     message = {'sender': sender, 'receiver': receiver, 'amounts': amounts, 'msg': msg, 'community': community, 'password': user_info['密碼'], 'account': user_info['帳號']}
     nodeclient.send(pickle.dumps(message))
 
@@ -452,12 +490,14 @@ if __name__ == "__main__":
             community_list = getData.take_community() # 取得社區清單
             flag = 1
             for com in community_list:
-                print(flag + '. ' + com)
+                print(flag, end='. ')
+                print(com)
                 flag += 1
             while(True):
                 which_community = input("Answer: ")
                 if which_community.isdigit():
-                    if int(which_community) > flag or int(which_community) < flag:
+                    which_community = int(which_community)
+                    if int(which_community) > flag or int(which_community) < 1:
                         print("輸入超過大小了!")
                     else:
                         break
@@ -470,16 +510,19 @@ if __name__ == "__main__":
     elif isjoincommunnity != None and issystemmanager == False: # 有加入社區
         comlist = getData.taken_comandid(user_info['帳號'])
         flag = 1
-        for c in comlist:
+        while(True):
             print(flag, end='. ')
-            print(c)
+            print(comlist[0]['community'][flag-1], end=' ')
+            print(comlist[0]['identity'][flag-1])
+            flag += 1
+            if (flag-1) == len(comlist[0]['community']): break
         ans = int(input('請選擇要進入哪個社區: ')) # 選擇要進入的社區頁面
-        if comlist[ans-1]['identity'] == '管理員':
+        if comlist[0]['identity'][ans-1] == '管理員':
             print('社區管理員權限') 
-            community_manager_page(IPserver_host, IPserver_port, user_info, comlist[ans-1]['community'])
-        elif comlist[ans-1]['identity'] == '一般用戶':
+            community_manager_page(IPserver_host, IPserver_port, user_info, comlist[0]['community'][ans-1])
+        elif comlist[0]['identity'][ans-1] == '一般用戶':
             print('一般用戶權限')
-            community_member_page(IPserver_host, IPserver_port, user_info, comlist[ans-1]['community'])
+            community_member_page(IPserver_host, IPserver_port, user_info, comlist[0]['community'][ans-1])
 
         
 
