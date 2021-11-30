@@ -60,9 +60,9 @@ def check_has_community(account):
     cursor = col_Community_members.find(myquery)
     data = [d for d in cursor]
     if data != list([]):
-        return data
+        return True
     else:
-        return None
+        return False
 
 # 檢查此信箱和電話是否被使用過
 def check_userinfor(email,phone):

@@ -126,6 +126,7 @@ def insert_Community_members(account,community,community_address,identity):
 def insert_System_members(account):
     cursor = col_System_members.find()
     data = [d for d in cursor]
+    account = list([account])
     if data == list([]):
       print('Please create system member first!')
     else:
@@ -186,6 +187,6 @@ def insert_community(community, community_wallet_address, community_private_key)
 
 # ----test----
 # insert_System_members('10')
-# system_members(['53'],'platform_password','system_wallet_address','system_private_key')
-# insert_System_members(['10'])
+# create_system_members('53','platform_password')
+# insert_System_members('10')
   

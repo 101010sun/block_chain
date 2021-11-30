@@ -436,7 +436,7 @@ if __name__ == "__main__":
             issystemmanager = False
 
     isjoincommunnity = checkData.check_has_community(user_info['帳號']) # 是否已加入社區
-    if isjoincommunnity == None and issystemmanager == False: # 無加入社區
+    if isjoincommunnity == False and issystemmanager == False: # 無加入社區
         command = input("創建社區 or 加入社區 (1/2)?: ")
         if str(command) == '1': # 創建社區
             community = input('請輸入社區名稱: ')
@@ -467,7 +467,7 @@ if __name__ == "__main__":
             apply_address = input("請輸入社區地址: ")
             insertData.insert_Check_community_user(user_info['帳號'], apply_community, apply_address) # 申請加入社區清單
     
-    elif isjoincommunnity != None and issystemmanager == False: # 有加入社區
+    elif isjoincommunnity and issystemmanager == False: # 有加入社區
         comlist = getData.taken_comandid(user_info['帳號'])
         flag = 1
         for c in comlist:
