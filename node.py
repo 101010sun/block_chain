@@ -159,6 +159,16 @@ class Node:
                             a_transaction = transaction.Transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['msg'], parsed_message['community'])
                             a_block.add_transaction(a_transaction)
                         self.blockchain.chain.append(a_block)
+            elif request == 'you_block':
+                time.sleep(0.5)
+                length = len(self.blockchain.pending_transactions)
+                s.send(pickle.dumps({'length': length}))
+
+                for pt in self.blockchain.pending_transactions[:]:
+                    time.sleep(0.5)
+                    tmp_pt = pt.pack_transaction_to_dict()
+                    s.send(pickle.dumps(tmp_pt))
+                    self.blockchain.pending_transactions.remove(pt)
             else:
                 # waiting for the response
                 response = s.recv(4096)
@@ -339,6 +349,22 @@ class Node:
                 elif parsed_message["identity"] == "node" and parsed_message["request"] == "you_block":
                     self.block_count = 0
                     self.blocking = True
+                    message = connection.recv(1024) # -- 交接交易池
+                    try:
+                        parsed_message = pickle.loads(message)
+                    except Exception:
+                        print(f"{message} cannot be parsed")
+                    print(parsed_message)
+                    length = int(parsed_message['length'])
+                    for i in range(0, length):
+                        message = connection.recv(1024) # -- 交接交易池
+                        try:
+                            parsed_message = pickle.loads(message)
+                        except Exception:
+                            print(f"{message} cannot be parsed")
+                        print(parsed_message)
+                        tmp_transaction = self.blockchain.initialize_transaction(parsed_message['sender'], parsed_message['receiver'], parsed_message['amounts'], parsed_message['message'], parsed_message['community'])
+                        self.blockchain.pending_transactions.append(tmp_transaction)
                     start_blocking = threading.Thread(target=self.produce_block) # 開始產生新區塊
                     start_blocking.start()
                 

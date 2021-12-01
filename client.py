@@ -3,9 +3,10 @@ import sys
 import socket
 import time
 import pickle
+from pymongo.message import update
 import stdiomask
 from Blockchain import Wallet
-from Model import insertData, getData, checkData
+from Model import insertData, getData, checkData, updateData
 
 # 登入頁面，回傳userinfo
 def login():
@@ -86,14 +87,14 @@ def system_manager_page(IPserver_host, IPserver_port, user_info):
                 target_info = get_ip_issue_money(IPserver_host, IPserver_port, message) # 告知索引伺服器 要創建社區貨幣
                 record_info = {
                     'currency_name': create_list[ans-1]['currency_name'],
-                    'currency_value': float(create_list[ans-1]['currency_value']), 
+                    'currency_value': float(create_list[ans-1]['circulation']), 
                     'circulation': float(cur_value), 
                     'community': create_list[ans-1]['community'],
                     'timestamp': timestamp
                     }
                 message['request'] = 'issue_money'
                 get_issue_money_result(target_info['IP'], target_info['Port_number'], message, record_info) # 告知主節點 要發行社區貨幣
-                # -- 移除創建社區清單
+                updateData.remove_Check_createcommunity(create_list[ans-1]['community']) # 移除創建社區清單
                 sender = getData.taken_plat_address()
                 receiver = getData.taken_community_address(create_list[ans-1]['community'])
                 amounts = cur_value
