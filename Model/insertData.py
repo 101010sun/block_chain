@@ -120,7 +120,9 @@ def insert_Community_members(account,community,community_address,identity):
       col_Community_members.insert_one(data) 
       return True  
     else:
-      col_Community_members.update_many({"account": account}, {'$addToSet': {"community":{"$each" : [community]}, "community_address":{"$each" : [community_address]},"identity":{"$each" : [identity]}}})
+      col_Community_members.update_many({"account": account}, {'$addToSet': {"community":{"$each" : [community]}, "community_address":{"$each" : [community_address]}}})
+      col_Community_members.update_one({"account": account},{'$push': {"identity": identity}}) 
+      #一樣的社區更新兩次的話identity會在陣列中重複
 
 # 新增_平台管理者
 def insert_System_members(account):
