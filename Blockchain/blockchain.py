@@ -216,3 +216,25 @@ class BlockChain:
             else:
                 print(f"[**] Received block error: Hash not matched by diff!")
             return False
+
+    # 取得創建貨幣時間戳
+        def get_timestamp(self, currency): 
+            for record in self.recordchain:
+                if record.currency_name == currency:
+                    return record.timestamp
+                    break
+
+    # 取得帳戶交易紀錄
+    def get_transaction(self, account): 
+        sell = list({})
+        buy = list({})
+        for block in self.chain:
+            for transaction in block.transactions:
+                if transaction.sender == account:
+                    sell.append(transaction)
+                elif transaction.receiver == account:
+                    buy.append(transaction)
+        return sell,buy
+
+    
+            
